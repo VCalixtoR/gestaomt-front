@@ -5,7 +5,7 @@
     <div class="top horCenter">
 
       <div>
-        <ImgCrown/>
+        <ImgCrown width="70px" height="32px"/>
       </div>
 
       <div>
@@ -53,7 +53,7 @@
             name="keepLog"
             ref="keepLog"
           />
-          <TextC colorClass="black2" fontSize="var(--text-small)" display="inline-block" margin="0px 10px">
+          <TextC colorClass="black2" fontSize="var(--text-small)" display="inline-block" margin="10px 10px">
             Manter login
           </TextC>
         </div>
@@ -169,16 +169,6 @@ export default {
   display: block;
   width: 100%;
 }
-@media (max-width: 1200px) {
-  .boxLogin{  
-    width: calc(100% - 10px);
-  }
-}
-@media (min-width: 1201px) {
-  .boxLogin{
-    width: 40%;
-  }
-}
 .top, .bottom{
   padding: 13px 30px;
   margin: 0px;
@@ -211,5 +201,25 @@ export default {
 .btnLogar{
   margin-bottom: 10px;
 }
+@media (max-width: 1200px) {
+  .boxLogin{  
+    width: calc(100% - 10px);
+  }
+  .labelLogin{
+    margin-top: 20px;
+  }
+  .btnLogar{
+    margin-top: 30px;
+  }
+  .bottom{
+    padding: 15px;
+  }
+}
+@media (min-width: 1201px) {
+  .boxLogin{
+    width: 30%;
+  }
+}
+
 
 </style>
