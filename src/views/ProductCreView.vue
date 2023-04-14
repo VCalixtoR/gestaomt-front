@@ -1,0 +1,558 @@
+<template>
+
+  <div class="pageContent" v-if="this.createdDone">
+
+    <div class="pageSection">
+      
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Informações Principais
+      </TextC>
+
+      <div class="pageSectionRow">
+        <div class="rowHalf colLeft">
+          <LabelC for="nameInput"
+            labelText="Nome"
+            class="plabel leftLabel"
+          />
+          <InputC id="nameInput"
+            ref="nameInput"
+            class="pinput nameInput"
+            type="text"
+            name="name"
+            maxlength="50"
+          />
+        </div>
+
+        <div class="rowHalf colRight">
+          <LabelC for="codeInput"
+            labelText="Código"
+            class="plabel"
+          />
+          <InputC id="codeInput"
+            ref="codeInput"
+            class="pinput codeInput"
+            type="text"
+            name="code"
+            maxlength="20"
+          />
+        </div>
+      </div>
+
+      <div class="pageSectionRow">
+        <div class="rowHalf colLeft">
+          <LabelC for="typeSelect"
+            labelText="Tipos"
+            class="plabel leftLabel"
+          />
+          <SelectMultipleC id="typeSelect"
+            ref='typeSelect'
+            class="pselect typeSelect"
+            colorClass="pink3"
+            name="types"
+            :items="this.typeSelectItems"
+          />
+        </div>
+
+        <div class="rowHalf colRight">
+          <LabelC for="collectionSelect"
+            labelText="Coleções"
+            class="plabel"
+          />
+          <SelectMultipleC id="collectionSelect"
+            ref='collectionSelect'
+            class="pselect collectionSelect"
+            colorClass="pink3"
+            name="collections"
+            :items="this.collectionSelectItems"
+          />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pageSection">
+      
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Personalização
+      </TextC>
+
+      <div class="pageSectionRow">
+        <div class="rowHalf colLeft">
+          <LabelC for="sizeSelect"
+            labelText="Tamanhos"
+            class="plabel leftLabel"
+            useRequiredChar
+          />
+          <SelectMultipleC id="sizeSelect"
+            ref='sizeSelect'
+            class="pselect sizeSelect"
+            colorClass="pink3"
+            name="sizes"
+            :items="this.sizeSelectItems"
+            :initialOptsValues="[ '32', '34', '36', '38', '40', '42' ]"
+            @optClicked="(itemValue) => this.updateTbls()"
+          />
+        </div>
+
+        <div class="rowHalf colRight">
+          <LabelC for="colorSelect"
+            labelText="Cores"
+            class="plabel"
+          />
+          <SelectMultipleC id="colorSelect"
+            ref='colorSelect'
+            class="pselect colorSelect"
+            colorClass="pink3"
+            name="colors"
+            :items="this.colorSelectItems"
+            @optClicked="(itemValue) => this.updateTbls()"
+          />
+        </div>
+      </div>
+
+      <div class="pageSectionRow">
+        <div class="rowHalf colLeft">
+          <LabelC for="othersSelect"
+            labelText="Outros"
+            class="plabel leftLabel"
+          />
+          <SelectMultipleC id="othersSelect"
+            ref='othersSelect'
+            class="pselect othersSelect"
+            colorClass="pink3"
+            name="others"
+            :items="this.othersSelectItems"
+            @optClicked="(itemValue) => this.updateTbls()"
+          />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pageSection">
+
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Preços e Estoque
+      </TextC>
+      
+      <div class="tblsWrapper">
+        <div class="tblPriceStockWrapper">
+          <TablePink :key="tblPriceStockKey"
+            ref="tblPriceStock"
+            class="tblPriceStock"
+            :tableData="this.tblPriceStock"
+            @checkBoxClicked="(bValue) => this.selectAllPriceStock(bValue)"
+          />
+        </div>
+        
+        <div class="tblBatchChangeWrapper">
+          <TablePink :key="tblBatchChangeKey"
+            ref="tblBatchChange"
+            class="tblBatchChange"
+            :tableData="this.tblBatchChange"
+            @accept="(rowN, colN) => this.doBatchChange(rowN)"
+          />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="buttonsWrapper">
+      <div class="buttonSaveWrapper">
+        <ButtonC colorClass="pink3"
+          :id="'btnsaveButton'"
+          class="btnP"
+          label="Salvar"
+          width="100%"
+          padding="3px 0px"
+          @click="this.save()"
+        />
+      </div>
+
+      <div class="buttonCleanWrapper">
+        <ButtonC colorClass="black1"
+          :id="'btnCleanFields'"
+          class="btnP"
+          label="Limpar"
+          width="100%"
+          padding="3px 0px"
+          @click="this.cleanFields()"
+        />
+      </div>
+    </div>
+
+  </div>
+
+</template>
+
+<script>
+
+import ButtonC from '../components/ButtonC.vue'
+import InputC from '../components/InputC.vue'
+import LabelC from '../components/LabelC.vue'
+import Requests from '../js/requests.js'
+import SelectC from '../components/SelectC.vue'
+import SelectMultipleC from '../components/SelectMultipleC.vue'
+import TablePink from '../components/TablePink.vue'
+import TextC from '../components/TextC.vue'
+import Utils from '../js/utils'
+
+export default {
+  
+  name: 'ClientCreView',
+
+  components: {
+    ButtonC,
+    InputC,
+    LabelC,
+    SelectC,
+    SelectMultipleC,
+    TablePink,
+    TextC
+  },
+
+  data() {
+    return {
+      collectionSelectItems: [],
+      typeSelectItems: [],
+      sizeSelectItems: [],
+      colorSelectItems: [],
+      othersSelectItems: [],
+      tblPriceStock: {
+        'titles': [ 'Tamanho', 'Cor', 'Outros', 'Preço', 'Estoque', 'Selecionar' ],
+        'colOperations': ['', '', '', '', '', 'checkbox'],
+        'colTypes': [ 'string', 'string', 'string', 'input', 'input', 'checkbox' ],
+        'colWidths': [ '10%', '25%', '25%', '10%', '10%', '20%' ],
+        'content': []
+      },
+      tblBatchChange: {
+        'single-title': 'Alterações em lote',
+        'colTypes': [ 'string', 'input', 'acceptReject' ],
+        'colWidths': [ '60%', '30%', '20%' ],
+        'content': [ 
+          ['Alterar preços para:', { 'type': 'text', 'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ] }, { 'showAccept': true, 'showReject': false } ],
+          ['Alterar estoques para:', { 'type': 'text', 'mask': '####' }, { 'showAccept': true, 'showReject': false } ]
+        ]
+      },
+      tblPriceStockKey: 0,
+      tblBatchChangeKey: 0,
+      createdDone: false
+    }
+  },
+
+  async created() {
+    this.$root.setPageLoggedName('Cadastro de Produtos');
+
+    let vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
+
+    if(vreturn && vreturn['ok'] && vreturn['response']){
+      let loadedInfo = vreturn['response'];
+      this.collectionSelectItems = loadedInfo['collections'].map(x => ({'label': x['product_collection_name'], 'value': x['product_collection_id']}));
+      this.typeSelectItems = loadedInfo['types'].map(x => ({'label': x['product_type_name'], 'value': x['product_type_id']}));
+      this.sizeSelectItems = loadedInfo['sizes'].map(x => ({'label': x['product_size_name'], 'value': x['product_size_id']}));
+      this.colorSelectItems = loadedInfo['colors'].map(x => ({'label': x['product_color_name'], 'value': x['product_color_id']}));
+      this.othersSelectItems = loadedInfo['others'].map(x => ({'label': x['product_other_name'], 'value': x['product_other_id']}));
+    }
+    else{
+      this.$root.renderRequestErrorMsg(vreturn, []);
+      this.$root.renderView('home');
+    }
+
+    this.createdDone = true;
+    this.updateTbls(true);
+  },
+
+  methods:{
+
+    updateTbls(initial=false){
+      
+      let sizeSelectV = [];
+      let colorSelectV = [];
+      let othersSelectV = [];
+
+      if(initial){
+        sizeSelectV = [
+          this.sizeSelectItems.find(x => x['label'] == '32'),
+          this.sizeSelectItems.find(x => x['label'] == '34'),
+          this.sizeSelectItems.find(x => x['label'] == '36'),
+          this.sizeSelectItems.find(x => x['label'] == '38'),
+          this.sizeSelectItems.find(x => x['label'] == '40'),
+          this.sizeSelectItems.find(x => x['label'] == '42')
+        ]
+      }
+      else{
+        sizeSelectV = this.$refs.sizeSelect.getV(true);
+        colorSelectV = this.$refs.colorSelect.getV(true);
+        othersSelectV = this.$refs.othersSelect.getV(true);
+      }
+
+      this.tblPriceStock['content'] = []
+      for(let i = 0; i < sizeSelectV.length; i++){
+
+        if(colorSelectV && colorSelectV.length > 0){
+          for(let j = 0; j < colorSelectV.length; j++){
+
+            if(othersSelectV && othersSelectV.length > 0){
+              for(let k = 0; k < othersSelectV.length; k++){
+                this.addtblPriceStock(sizeSelectV[i], colorSelectV[j], othersSelectV[k]);
+              }
+            }
+            else{
+              this.addtblPriceStock(sizeSelectV[i], colorSelectV[j], null);
+            }
+          }
+        }
+        else if(othersSelectV && othersSelectV.length > 0){
+          for(let k = 0; k < othersSelectV.length; k++){
+            this.addtblPriceStock(sizeSelectV[i], null, othersSelectV[k]);
+          }
+        }
+        else{
+          this.addtblPriceStock(sizeSelectV[i], null, null);
+        }
+      }
+      this.tblPriceStockKey = this.tblPriceStockKey + 1;
+    },
+    addtblPriceStock(size, color, other){
+      this.tblPriceStock['content'].push([
+        size['label'],
+        color ? color['label'] : '---',
+        other ? other['label'] : '---',
+        { 'type': 'text', 'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ], 'value': 'R$ ' },
+        { 'type': 'text', 'mask': '####', 'value': 0 },
+        ''
+      ]);
+    },
+    selectAllPriceStock(bValue){
+      this.tblPriceStock['content'].forEach((_, rowIndex) => {
+        this.$refs.tblPriceStock.setV(rowIndex, 5, bValue)
+      });
+    },
+    doBatchChange(rowNum){
+      let tblBatchChangeV = this.$refs.tblBatchChange.getV();
+      let newPrice = tblBatchChangeV[0][1];
+      let newQuantity = tblBatchChangeV[1][1];
+
+      // alter prices
+      if(rowNum == 0){
+        this.tblPriceStock['content'].forEach((_, rowIndex) => {
+          if(this.$refs.tblPriceStock.getV(rowIndex, 5)){
+            this.$refs.tblPriceStock.setV(rowIndex, 3, newPrice);
+          }
+        });
+      }
+      // alter quantity
+      else{
+        this.tblPriceStock['content'].forEach((_, rowIndex) => {
+          if(this.$refs.tblPriceStock.getV(rowIndex, 5)){
+            this.$refs.tblPriceStock.setV(rowIndex, 4, newQuantity);
+          }
+        });
+      }
+    },
+    async save(){
+      
+      let nameInputV = this.$refs.nameInput.getV();
+      let codeInputV = this.$refs.codeInput.getV();
+      let typeSelectIds = this.$refs.typeSelect.getV();
+      let collectionSelectIds = this.$refs.collectionSelect.getV();
+      let tblPriceStockV = this.$refs.tblPriceStock.getV();
+      let parsedCustomProducts = [];
+
+      if(nameInputV.length < 5 || nameInputV.length > 50){
+        this.$root.renderMsg('warn', 'Nome inválido!', 'Necessário de 5 a 50 caracteres.');
+        return;
+      }
+
+      if(codeInputV.length < 3 || codeInputV.length > 20){
+        this.$root.renderMsg('warn', 'Código inválido!', 'Necessário de 3 a 20 caracteres.');
+        return;
+      }
+
+      if(!tblPriceStockV || tblPriceStockV.length == 0){
+        this.$root.renderMsg('warn', 'Produtos inválidos!', 'Pelo menos um produto customizado deve ser associado ao produto geral.');
+        return;
+      }
+
+      for(let i = 0; i < tblPriceStockV.length; i++){
+        if(!tblPriceStockV[i][0]){
+          this.$root.renderMsg('warn', 'Produtos inválidos!', 'Pelo menos um produto customizado deve ser associado ao produto geral.');
+          return;
+        }
+
+        // size id
+        let sizeId = this.sizeSelectItems.find(x => x['label'] == tblPriceStockV[i][0])['value'];
+        let colorId = null;
+        let otherId = null;
+        let price = null;
+        let quantity = null;
+
+        // color id
+        if(tblPriceStockV[i][1] != '---'){
+          colorId = this.colorSelectItems.find(x => x['label'] == tblPriceStockV[i][1]);
+          colorId = colorId ? colorId['value'] : null; 
+        }
+        
+        // other id
+        if(tblPriceStockV[i][2] != '---'){
+          otherId = this.othersSelectItems.find(x => x['label'] == tblPriceStockV[i][2]);
+          otherId = otherId ? otherId['value'] : null;
+        }
+
+        // price
+        price = Utils.getNumberFormatFromCurrency(tblPriceStockV[i][3]);
+        if(price <= 0){
+          this.$root.renderMsg('warn', 'Preço dos produtos inválidos!', 'Os preços devem ser maiores que 0.');
+          return;
+        }
+
+        // quantity
+        quantity = Number(tblPriceStockV[i][4]);
+        if(quantity < 0){
+          this.$root.renderMsg('warn', 'Quantidade dos produtos inválidos!', 'A quanitdade dos produtos não pode ser menor que 0.');
+          return;
+        }
+
+        parsedCustomProducts.push({
+          'product_color_id': colorId,
+          'product_other_id': otherId,
+          'product_size_id': sizeId,
+          'product_price': price,
+          'product_quantity': quantity
+        });
+      }
+
+      let vreturn = await this.$root.doRequest(
+        Requests.createProduct,
+        [codeInputV, nameInputV, collectionSelectIds, typeSelectIds, parsedCustomProducts]
+      );
+
+      if(vreturn && vreturn['ok']){
+        let self = this;
+        this.$root.renderMsg('ok', 'Sucesso!', 'Produtos cadastrados.', function () { self.$router.go(); });
+      }
+      else{
+        this.$root.renderRequestErrorMsg(vreturn, []);
+      }
+    },
+    cleanFields(){
+      this.$refs.nameInput.setV('');
+      this.$refs.codeInput.setV('');
+      this.$refs.typeSelect.setV('');
+      this.$refs.collectionSelect.setV('');
+      this.$refs.sizeSelect.setV(['32', '34', '36', '38', '40', '42'], true);
+      this.$refs.colorSelect.setV('');
+      this.$refs.othersSelect.setV('');
+
+      this.updateTbls(true);
+      this.$refs.tblBatchChange.setV(0, 1, '');
+      this.$refs.tblBatchChange.setV(1, 1, '');
+    }
+  }
+}
+</script>
+
+<!-- style applies only to this component -->
+<style scoped>
+
+.pageContent{
+  width: 100%;
+  height: 100%;
+}
+.pageSection{
+  width: 100%;
+  padding: 10px;
+}
+@media (max-width: 1200px) {
+  .pageSectionRow{
+    margin: 5px 10px;
+  }
+  .plabel, .pinput, .pselect{
+    display: block;
+    width: 100%;
+  }
+  .tblBatchChangeWrapper{
+    margin: 15px 0px;
+    vertical-align: top;
+  }
+  .buttonsWrapper{
+    text-align: center;
+    width: 100%;
+  }
+  .buttonSaveWrapper, .buttonCleanWrapper{
+    width: 80%;
+    display: inline-block;
+    margin: 10px;
+    text-align: center;
+  }
+  .btnP{
+    display: inline-block;
+  }
+}
+@media (min-width: 1201px) {
+  .pageSectionRow{
+    margin: 10px 20px;
+  }
+  .rowHalf{
+    display: inline-block;
+    margin: 0px;
+    padding: 0px;
+    width: 50%;
+  }
+  .colLeft{
+    text-align: left;
+  }
+  .colRight{
+    text-align: right;
+  }
+  .plabel{
+    display: inline-block;
+    margin-right: 10px;
+  }
+  .leftLabel{
+    text-align: right;
+    width: 100px;
+  }
+  .nameInput, .typeSelect, .collectionSelect, .sizeSelect, .colorSelect, .othersSelect{
+    width: calc(95% - 115px);
+  }
+  .codeInput{
+    width: 220px;
+  }
+  .tblsWrapper{
+    width: 100%;
+    text-align: center;
+    padding: 0px;
+    margin: 10px 0px 5px 0px;
+  }
+  .tblPriceStockWrapper, .tblBatchChangeWrapper{
+    display: inline-block;
+    text-align: center;
+    padding: 0px;
+    margin: 0px;
+  }
+  .tblPriceStockWrapper{
+    width: 70%;
+  }
+  .tblBatchChangeWrapper{
+    width: 27%;
+    margin: 0px 1%;
+    vertical-align: top;
+  }
+  .buttonsWrapper{
+    text-align: left;
+    width: 100%;
+  }
+  .buttonSaveWrapper, .buttonCleanWrapper{
+    display: inline-block;
+    margin-left: 20px;
+  }
+  .buttonSaveWrapper{
+    width: 30%;
+  }
+  .buttonCleanWrapper{
+    width: 20%;
+  }
+}
+
+</style>
