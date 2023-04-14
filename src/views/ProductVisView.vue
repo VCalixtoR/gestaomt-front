@@ -215,7 +215,7 @@
           :maxPages="this.maxProductsPages"
           @previousClick="this.previousProductPage()"
           @nextClick="this.nextProductPage()"
-          @edit="(rowN, colN) => this.editClient(rowN)"
+          @edit="(rowN, colN) => this.editProduct(rowN)"
         />
       </div>
 
@@ -463,6 +463,7 @@ export default {
     },
 
     editProduct(rowNumber){
+      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
       //this.$root.renderView('alterarproduto', { 'product_id' : this.productIds[rowNumber] });
     }
   }

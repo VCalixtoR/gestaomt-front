@@ -254,7 +254,7 @@ export default {
       this.othersSelectItems = loadedInfo['others'].map(x => ({'label': x['product_other_name'], 'value': x['product_other_id']}));
     }
     else{
-      this.$root.renderRequestErrorMsg(vreturn, []);
+      this.$root.renderRequestErrorMsg(vreturn, ['Produto não encontrado']);
       this.$root.renderView('home');
     }
 
@@ -432,7 +432,15 @@ export default {
         this.$root.renderMsg('ok', 'Sucesso!', 'Produtos cadastrados.', function () { self.$router.go(); });
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderRequestErrorMsg(vreturn, [
+          'Existe um produto ativo com o mesmo código, escolha um novo código ou desative o outro produto',
+          'Existe um produto ativo com o mesmo nome, escolha um novo nome ou desative o outro produto',
+          'Produtos customizaveis inválidos',
+          'Existe duplicatas nos produtos',
+          'Preço do produto inválido para uma das variações',
+          'Quantidade do produto inválida para uma das variações',
+          'Tamanho do produto inválido para uma das variações'
+        ]);
       }
     },
     cleanFields(){

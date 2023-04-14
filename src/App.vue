@@ -130,12 +130,22 @@ export default {
       var isKnownMsg = false;
 
       if(vreturn && vreturn['response']){
+
         knownMsgs.forEach(knownMsg => {
-          if(!isKnownMsg && vreturn['response']['message'] == knownMsg){
-            this.renderMsg('warn', '', vreturn['response']['message']);
+          if(!isKnownMsg && vreturn['response'] == knownMsg){
+            this.renderMsg('warn', '', vreturn['response']);
             isKnownMsg = true;
           }
         });
+
+        if(!isKnownMsg){
+          knownMsgs.forEach(knownMsg => {
+            if(!isKnownMsg && vreturn['response']['message'] == knownMsg){
+              this.renderMsg('warn', '', vreturn['response']['message']);
+              isKnownMsg = true;
+            }
+          });
+        }
       }
       
       if(!isKnownMsg){

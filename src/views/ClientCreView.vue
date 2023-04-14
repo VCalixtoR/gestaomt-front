@@ -578,7 +578,9 @@ export default {
         this.$root.renderMsg('ok', 'Sucesso!', 'Cliente cadastrado.', function () { self.$router.go(); });
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, ['Cpf já utilizado!']);
+        this.$root.renderRequestErrorMsg(vreturn, ['Nome já utilizado!', 'Cliente não econtrado!', 'Cpf já utilizado!', 
+          'Um dos contatos associados não possui o tipo', 'Um dos contatos associados está sem o valor', 'Uma das crianças associadas não possui o nome', 
+          'Uma das crianças associadas não possui o aniversário', 'Uma das crianças associadas não possui o tamanho de produtos']);
       }
     },
     cleanFields(){

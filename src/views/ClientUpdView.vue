@@ -390,7 +390,7 @@ export default {
       this.restoreFields();
     }
     else{
-      this.$root.renderRequestErrorMsg(vreturn, []);
+      this.$root.renderRequestErrorMsg(vreturn, ['Cliente não econtrado!']);
       this.$root.renderView('home');
     }
   },
@@ -612,7 +612,7 @@ export default {
         this.$root.renderMsg('ok', 'Sucesso!', 'Cliente atualizado.', function () { self.$router.go(); });
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, ['Cpf já utilizado!']);
+        this.$root.renderRequestErrorMsg(vreturn, ['Cliente não econtrado!', 'Cpf já utilizado!']);
       }
     },
     restoreFields(){

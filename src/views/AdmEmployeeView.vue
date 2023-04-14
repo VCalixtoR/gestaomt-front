@@ -293,7 +293,7 @@ export default {
       let vreturn = await this.$root.doRequest(Requests.allowUser, [ this.users[rowN]['id'] ]);
 
       if(!vreturn || !vreturn['ok']){
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderRequestErrorMsg(vreturn, ['Usuário não econtrado!', 'Funcionário já autorizado!', 'Usuário já possui cadastro como funcionário!']);
       }
       else{
         await this.loadPendingUsers();
@@ -304,7 +304,7 @@ export default {
       let vreturn = await this.$root.doRequest(Requests.rejectUser, [ this.users[rowN]['id'] ]);
 
       if(!vreturn || !vreturn['ok']){
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderRequestErrorMsg(vreturn, ['Usuário não econtrado!', 'Funcionário já autorizado! Para desativa-lo utilize o update de funcionários', 'Usuário apagado!']);
       }
       else{
         await this.loadPendingUsers();
@@ -329,7 +329,7 @@ export default {
         let vreturn = await this.$root.doRequest(Requests.updateEmployee, args);
 
         if(!vreturn || !vreturn['ok']){
-          this.$root.renderRequestErrorMsg(vreturn, []);
+          this.$root.renderRequestErrorMsg(vreturn, ['Funcionário não econtrado!']);
         }
         else{
           await this.loadEmployees();
@@ -348,7 +348,7 @@ export default {
         let vreturn = await this.$root.doRequest(Requests.updateEmployee, args);
 
         if(!vreturn || !vreturn['ok']){
-          this.$root.renderRequestErrorMsg(vreturn, []);
+          this.$root.renderRequestErrorMsg(vreturn, ['Funcionário não econtrado!']);
         }
         else{
           await this.loadEmployees();

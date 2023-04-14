@@ -54,53 +54,54 @@
       
       <div class="iMenuWrapper" v-show="!this.isOnMobyle || (this.isOnMobyle && this.showMenuOnMobile)">
 
-        <div v-for="(item, index) in items" :key="index"
-          class="itemContainer"
-          :id="item.label"
-          :style="{
-            'background-color': item.iSelected ? 'var(--color-pink2)' : 'var(--color-black1)',
-            'color': item.iSelected ? 'var(--color-black1)' : 'var(--color-white)',
-            'text-decoration': item.iSelected && item.subItems.length == 0 ? 'underline' : 'none'
-          }">
-
-          <div class="itemLabelContainer"
-            @mouseover="item.iHover=true"
-            @mouseleave="item.iHover=false"
-            @click="setItemSelected(index);"
+        <div v-for="(item, index) in items" :key="index">
+          <div class="itemContainer" v-show="!item.admAcessOnly || this.$root.userLoggedData['type'] == 'A'"
+            :id="item.label"
             :style="{
-              'text-decoration': item.iSelected && item.subItems.length == 0 ? 'underline' : 'none',
-              'font-weight': item.iHover || item.iSelected ? '600' : '500'
+              'background-color': item.iSelected ? 'var(--color-pink2)' : 'var(--color-black1)',
+              'color': item.iSelected ? 'var(--color-black1)' : 'var(--color-white)',
+              'text-decoration': item.iSelected && item.subItems.length == 0 ? 'underline' : 'none'
             }">
 
-            <div class="itemIconDiv">
-              <font-awesome-icon :icon="'fa-solid fa-' + item.faIconName"/>
-            </div>
-            <TextC colorClass='inherit' fontWeight='inherit' fontSize='var(--text-normal)' margin='10px' display='inline'>
-              {{ item.label }}
-            </TextC>
-            <font-awesome-icon v-if="item.subItems.length > 0"
-              :icon=" item.subItemsShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"
-              class="iconChevron"
-            />
-          </div>
-
-          <div v-if="item.subItemsShow">
-            <div v-for="(subItem, indexS) in item.subItems" :key="indexS"
-              class="subItemContainer"
-              :id="item.label + indexS"
-              @click="setSubItemSelected(index, indexS);"
-              @mouseover="subItem.sHover=true"
-              @mouseleave="subItem.sHover=false"
+            <div class="itemLabelContainer"
+              @mouseover="item.iHover=true"
+              @mouseleave="item.iHover=false"
+              @click="setItemSelected(index);"
               :style="{
-                'text-decoration': item.iSelected && subItem.sSelected ? 'underline' : 'none',
-                'font-weight': subItem.sHover || (item.iSelected && subItem.sSelected) ? '600' : '500'
+                'text-decoration': item.iSelected && item.subItems.length == 0 ? 'underline' : 'none',
+                'font-weight': item.iHover || item.iSelected ? '600' : '500'
               }">
-              <TextC colorClass='inherit' fontWeight='inherit' fontSize='var(--text-small)' margin='10px' display='inline'>
-                {{ subItem.subLabel }}
-              </TextC>
-            </div>
-          </div>
 
+              <div class="itemIconDiv">
+                <font-awesome-icon :icon="'fa-solid fa-' + item.faIconName"/>
+              </div>
+              <TextC colorClass='inherit' fontWeight='inherit' fontSize='var(--text-normal)' margin='10px' display='inline'>
+                {{ item.label }}
+              </TextC>
+              <font-awesome-icon v-if="item.subItems.length > 0"
+                :icon=" item.subItemsShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"
+                class="iconChevron"
+              />
+            </div>
+
+            <div v-if="item.subItemsShow">
+              <div v-for="(subItem, indexS) in item.subItems" :key="indexS"
+                class="subItemContainer"
+                :id="item.label + indexS"
+                @click="setSubItemSelected(index, indexS);"
+                @mouseover="subItem.sHover=true"
+                @mouseleave="subItem.sHover=false"
+                :style="{
+                  'text-decoration': item.iSelected && subItem.sSelected ? 'underline' : 'none',
+                  'font-weight': subItem.sHover || (item.iSelected && subItem.sSelected) ? '600' : '500'
+                }">
+                <TextC colorClass='inherit' fontWeight='inherit' fontSize='var(--text-small)' margin='10px' display='inline'>
+                  {{ subItem.subLabel }}
+                </TextC>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -132,25 +133,25 @@ export default {
   data() {
     return {
       items: [
-        { label: "Home", faIconName: "home", view: 'home', iSelected: true, iHover: false, subItemsShow: false, subItems: [] },
-        { label: "Clientes", faIconName: "user", view: '', iSelected: false, iHover: false, subItemsShow: false, subItems: [ 
+        { label: "Home", faIconName: "home", view: 'home', admAcessOnly: false, iSelected: true, iHover: false, subItemsShow: false, subItems: [] },
+        { label: "Clientes", faIconName: "user", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [ 
           { subLabel: "Cadastrar", view: 'cadastrocliente', sSelected: false, sHover: false }, 
           { subLabel: "Visualizar/Alterar", view: 'vercliente', sSelected: false, sHover: false } 
         ] },
-        { label: "Produtos", faIconName: "suitcase", view: '', iSelected: false, iHover: false, subItemsShow: false, subItems: [
+        { label: "Produtos", faIconName: "suitcase", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
           { subLabel: "Cadastrar", view: 'cadastrarproduto', sSelected: false, sHover: false }, 
           { subLabel: "Visualizar/Alterar", view: 'verproduto', sSelected: false, sHover: false } 
         ] },
-        { label: "Condicionais", faIconName: "arrow-right-arrow-left", view: '', iSelected: false, iHover: false, subItemsShow: false, subItems: [
+        { label: "Condicionais", faIconName: "arrow-right-arrow-left", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
           { subLabel: "Gerar", view: '', sSelected: false, sHover: false },
           { subLabel: "Visualizar", view: '', sSelected: false, sHover: false }
         ] },
-        { label: "Vendas", faIconName: "money-bill", view: '', iSelected: false, iHover: false, subItemsShow: false, subItems: [
+        { label: "Vendas", faIconName: "money-bill", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
           { subLabel: "Gerar", view: '', sSelected: false, sHover: false }, 
           { subLabel: "Visualizar", view: '', sSelected: false, sHover: false }
         ] },
-        { label: "Funcionários", faIconName: "users", view: 'admfuncionarios', iSelected: false, iHover: false, subItemsShow: false, subItems: [] },
-        { label: "Histórico", faIconName: "clock-rotate-left", view: 'admeventos', iSelected: false, iHover: false, subItemsShow: false, subItems: [] }
+        { label: "Funcionários", faIconName: "users", view: 'admfuncionarios', admAcessOnly: true, iSelected: false, iHover: false, subItemsShow: false, subItems: [] },
+        { label: "Histórico", faIconName: "clock-rotate-left", view: 'admeventos', admAcessOnly: true, iSelected: false, iHover: false, subItemsShow: false, subItems: [] }
       ],
       itemSelected: 0,
       subItemSelected: 0,

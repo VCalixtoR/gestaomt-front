@@ -12,8 +12,11 @@ async function baseRequestFBody(headers, endpoint){
 
     let vreturnOk = vreturn['response'].ok;
 
-    if(vreturn['response']['statusText'] != 'NO CONTENT'){
-      vreturn['response'] = await vreturn['response'].json();
+    if(vreturn['response'] && vreturn['response']['statusText'] != 'NO CONTENT'){
+      vreturn['response'] = await vreturn['response'].text();
+    }
+    if(vreturn['response']){
+      vreturn['response'] = JSON.parse(vreturn['response']);
     }
     
     if(vreturnOk){
