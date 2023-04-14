@@ -42,7 +42,7 @@
 
           <LabelC for="endQuantityInput"
             labelText="até"
-            class="priceQuantityLabel"
+            class="priceQuantityLabel priceQuantityLabel2"
           />
           <InputC id="endQuantityInput"
             ref="endQuantityInput"
@@ -88,7 +88,7 @@
 
           <LabelC for="endPriceInput"
             labelText="até"
-            class="priceQuantityLabel"
+            class="priceQuantityLabel priceQuantityLabel2"
           />
           <InputC id="endPriceInput"
             ref="endPriceInput"
@@ -537,9 +537,32 @@ export default {
     width: 100%;
     margin-left: 0px;
   }
-  .ilabel{
-    margin: 5px 0px;
+  .leftLabel, .colorOtherLabel{
+    margin-top: 10px;
     display: block;
+  }
+  .labelInterval{
+    display: block;
+    margin-top: 10px;
+  }
+  .priceQuantityLabel{
+    display: inline-block;
+    margin: 5px 0px;
+  }
+  .priceQuantityLabel2{
+    margin: 5px 7px;
+  }
+  .labelInterval{
+    display: inline-block;
+    margin-top: 10px;
+  }
+  .priceQuantityInput{
+    display: block;
+    width: calc(100% - 20px);
+    margin: 0px 10px;
+  }
+  .codeInput, .nameInput, .typeSelect, .colorSelect, .collectionSelect, .otherSelect, .sizeSelect{
+    width: 100%;
   }
   .filterButton, .clearFilterButton{
     display: block;

@@ -150,7 +150,7 @@ export default {
       
       if(!isKnownMsg){
 
-        if(vreturn && vreturn['response'] && vreturn['status'] == 401){
+        if(vreturn && vreturn['status'] == 401){
           let self = this;
           this.renderMsg('warn', 'Login Expirado', ['Por favor realize o login novamente'], function () { self.$root.renderView('login'); });
         }
