@@ -406,29 +406,29 @@ export default {
         
         case "W":
           return [
-            { 'initialOptValue': "W", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'Telefone', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
+            { 'initialOptValue': "W", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
             { 'type': 'text', 'mask': ['(##) ####-####', '(##) #####-####'], 'value': value},
             { 'showAccept': false, 'showReject': true }
           ];
 
         case "T":
           return [
-            { 'initialOptValue': "T", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'Telefone', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'mask': ['(##) ####-####', '(##) #####-####'], 'value': value},
+            { 'initialOptValue': "T", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
+            { 'type': 'text', 'maxlength': '50', 'value': value },
             { 'showAccept': false, 'showReject': true }
           ];
 
         case "I":
           return [
-            { 'initialOptValue': "I", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'Telefone', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'maxlength': '25', 'value': value},
+            { 'initialOptValue': "I", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
+            { 'type': 'text', 'maxlength': '50', 'value': value},
             { 'showAccept': false, 'showReject': true }
           ];
 
         case "E":
           return [
-            { 'initialOptValue': "E", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'Telefone', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'maxlength': '25', 'value': value},
+            { 'initialOptValue': "E", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
+            { 'type': 'text', 'maxlength': '50', 'value': value},
             { 'showAccept': false, 'showReject': true }
           ];
       }
@@ -542,6 +542,24 @@ export default {
         return;
       }
 
+      if(tableContactsV.length == 0){
+        this.$root.renderMsg('warn', 'Contato inválido!', 'É obrigatório a adição de pelo menos o número de whatsapp como contato do cliente.');
+        return;
+      }
+      else{
+        let foundWhats = false;
+        for(let i = 0; i < tableContactsV.length; i++){
+          if(tableContactsV[i] && tableContactsV[i][0] == 'W' && tableContactsV[i][1].length > 0){
+            foundWhats = true;
+            break;
+          }
+        }
+        if(!foundWhats){
+          this.$root.renderMsg('warn', 'Contato inválido!', 'É obrigatório a adição de pelo menos o número de whatsapp como contato do cliente.');
+          return;
+        }
+      }
+
       for(let i = 0; i < tableContactsV.length; i++){
         let contact = tableContactsV[i];
 
@@ -554,8 +572,8 @@ export default {
             contactsV.push({ "contact_type": "W", "contact_value": contact[1] });
             break;
           case 'T':
-            if(contact[1].length >= 0 && contact[1].length < 10){
-              this.$root.renderMsg('warn', 'Telefone inválido!', 'O contado da posição ' + (i+1) + ' está preenchido parcialmente.');
+            if(contact[1].length <= 0 || contact[1].length > 50){
+              this.$root.renderMsg('warn', 'TikTok inválido!', 'O contado tiktok da posição ' + (i+1) + ' deve possuir de 1 a 50 caracteres.');
               return;
             }
             contactsV.push({ "contact_type": "T", "contact_value": contact[1] });

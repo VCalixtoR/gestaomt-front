@@ -129,6 +129,9 @@ export default {
 
       var isKnownMsg = false;
 
+      console.log(vreturn);
+      console.log(knownMsgs);
+
       if(vreturn && vreturn['response']){
 
         knownMsgs.forEach(knownMsg => {
@@ -153,6 +156,15 @@ export default {
         if(vreturn && vreturn['status'] == 401){
           let self = this;
           this.renderMsg('warn', 'Login Expirado', ['Por favor realize o login novamente'], function () { self.$root.renderView('login'); });
+        }
+        else if(vreturn && vreturn['message'] == 'Could not reach backend'){
+          let self = this;
+          this.renderMsg('warn', 'Problemas de conexão com o sevidor', 
+            [
+              'Por favor verifique se a sua internet está ativa',
+              'No caso do problema de conexão persistir, contate o suporte técnico'
+            ], 
+            function () { self.$root.renderView('login'); });
         }
         else{
           var errorMsgs = ['Um erro ocorreu, notificar a equipe técnica as informações abaixo:'];
@@ -239,7 +251,7 @@ export default {
           this.jwt = ClientStorage.getJwtToken();
         }
         else{
-          this.jwt = null;
+          return vreturn;
         }
       }
       return this.jwt;
@@ -327,9 +339,13 @@ export default {
 
         // if the token expires before request is send, update token
         if(doAuth && this.isJwtExpired){
-          let tmp = await this.getOrUpdateGetJwt();
-          if(tmp == null){
-            throw 'Error trying to authenticate first in doRequest!';
+
+          let tmpVreturn = await this.getOrUpdateGetJwt();
+
+          if(tmpVreturn == null || !tmpVreturn['ok']){
+            vreturn['message'] = 'Error trying to authenticate first in doRequest: ' + tmpVreturn ? tmpVreturn['message'] : '';
+            vreturn['status'] = tmpVreturn['status'];
+            throw '';
           }
         }
 
@@ -337,13 +353,15 @@ export default {
 
         // if the token expires in same moment of an failed request, update token and redo request
         if( doAuth && this.isJwtExpired && ( !vreturn || !vreturn['ok'])){
-          let tmp = await this.getOrUpdateGetJwt();
-          if(tmp != null){
-            vreturn = await requestF(this.jwt, requestArgs);
+
+          let tmpVreturn = await this.getOrUpdateGetJwt();
+
+          if(tmpVreturn == null || !tmpVreturn['ok']){
+            vreturn['message'] = 'Error trying to authenticate second in doRequest: ' + tmpVreturn ? tmpVreturn['message'] : '';
+            vreturn['status'] = tmpVreturn['status'];
+            throw '';
           }
-          else{
-            throw 'Error trying to authenticate second in doRequest!';
-          }
+          vreturn = await requestF(this.jwt, requestArgs);
         }
 
         return vreturn;

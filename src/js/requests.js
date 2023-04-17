@@ -7,12 +7,19 @@ async function baseRequestFBody(headers, endpoint){
   var vreturn = {};
 
   try{
-    vreturn['response'] = await fetch(`${base_url}${endpoint}`, headers);
+
+    vreturn['response'] = await fetch(`${base_url}${endpoint}`, headers).then((response) => {
+      return response;
+    }).catch(error => {
+      throw new Error('Could not reach backend', {cause: error});
+    });
+
     vreturn['status'] = vreturn['response'].status;
+    vreturn['statusText'] = vreturn['response']['statusText'];
 
     let vreturnOk = vreturn['response'].ok;
 
-    if(vreturn['response'] && vreturn['response']['statusText'] != 'NO CONTENT'){
+    if(vreturn['response']){
       vreturn['response'] = await vreturn['response'].text();
     }
     if(vreturn['response']){
@@ -34,6 +41,10 @@ async function baseRequestFBody(headers, endpoint){
     vreturn['location'] = `Exception in ${endpoint}`;
     vreturn['message'] = error.message;
     vreturn['error'] = error;
+
+    if(endpoint=='auth-with-token'){
+      vreturn['status'] = 401;
+    }
 
     return vreturn;
   }
@@ -308,8 +319,8 @@ async function getClients(token_jwt, args){
   let offset = args[1];
   let client_name = (args[2] != null ? args[2] : '');
   let children_name = (args[3] != null ? args[3] : '');
-  let children_birth_date_start = (args[4] != null ? args[4] : '');
-  let children_birth_date_end = (args[5] != null ? args[5] : '');
+  let children_birth_month_day_start = (args[4] != null ? args[4] : '');
+  let children_birth_month_day_end = (args[5] != null ? args[5] : '');
   let last_sale_date_start = (args[6] != null ? args[6] : '');
   let last_sale_date_end = (args[7] != null ? args[7] : '');
 
@@ -321,7 +332,7 @@ async function getClients(token_jwt, args){
     }
   }
 
-  var querystring = `?limit=${limit}&offset=${offset}&client_name=${client_name}&children_name=${children_name}&children_birth_date_start=${children_birth_date_start}&children_birth_date_end=${children_birth_date_end}&last_sale_date_start=${last_sale_date_start}&last_sale_date_end=${last_sale_date_end}`;
+  var querystring = `?limit=${limit}&offset=${offset}&client_name=${client_name}&children_name=${children_name}&children_birth_month_day_start=${children_birth_month_day_start}&children_birth_month_day_end=${children_birth_month_day_end}&last_sale_date_start=${last_sale_date_start}&last_sale_date_end=${last_sale_date_end}`;
 
   let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`);
   return vreturn;

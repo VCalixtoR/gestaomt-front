@@ -45,7 +45,7 @@ function getJsonKeyTree(json){
 
 function getDateString(date, dateDelim = '/'){
   
-  // avoid timezoud adding 3 hours in ms
+  // avoid timezone adding 3 hours in ms
   if(typeof date === "string"){
     date = new Date(Date.parse(date)+10800000);
   }

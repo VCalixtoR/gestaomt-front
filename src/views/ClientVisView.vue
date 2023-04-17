@@ -44,26 +44,44 @@
 
       <div class="clientFiltersRow">
 
-        <LabelC for="birthStartInput"
+        <LabelC for="birthStartDayInput"
           labelText="Aniversário(Filhos): De"
           class="ilabel"
         />
-        <InputC id="birthStartInput"
-          ref="birthStartInput"
-          class="birthStartInput"
-          type="date"
-          name="birthStart"
+        <InputC id="birthStartDayInput"
+          ref="birthStartDayInput"
+          class="birthStartDayInput"
+          type="number"
+          name="birthStartDay"
+          min="1"
+          max="31"
+        />
+        <SelectC id="birthStartMonthInput"
+          ref="birthStartMonthInput"
+          class="birthStartMonthInput"
+          name="birthStartMonth"
+          colorClass="pink3"
+          :items="this.monthSelectI"
         />
 
-        <LabelC for="birthEndInput"
+        <LabelC for="birthEndDayInput"
           labelText="até"
           class="ilabel"
         />
-        <InputC id="birthEndInput"
-          ref="birthEndInput"
-          class="birthEndInput"
-          type="date"
-          name="birthEnd"
+        <InputC id="birthEndDayInput"
+          ref="birthEndDayInput"
+          class="birthEndDayInput"
+          type="number"
+          name="birthEndDay"
+          min="1"
+          max="31"
+        />
+        <SelectC id="birthEndMonthInput"
+          ref="birthEndMonthInput"
+          class="birthEndMonthInput"
+          name="birthEndMonth"
+          colorClass="pink3"
+          :items="this.monthSelectI"
         />
       </div>
 
@@ -147,6 +165,7 @@ import ButtonC from '../components/ButtonC.vue'
 import InputC from '../components/InputC.vue'
 import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
+import SelectC from '../components/SelectC.vue'
 import TablePink from '../components/TablePink.vue'
 import TextC from '../components/TextC.vue'
 import Utils from '../js/utils'
@@ -159,6 +178,7 @@ export default {
     ButtonC,
     InputC,
     LabelC,
+    SelectC,
     TablePink,
     TextC
   },
@@ -172,13 +192,28 @@ export default {
         'colWidths': [ '25%', '15%', '15%', '25%', '15%', '5%' ],
         'content': []
       },
+      monthSelectI: [
+        { label: '---' , value: '' },
+        { label: 'janeiro' , value: '1' },
+        { label: 'fevereiro' , value: '2' },
+        { label: 'março' , value: '3' },
+        { label: 'abril' , value: '4' },
+        { label: 'maio' , value: '5' },
+        { label: 'junho' , value: '6' },
+        { label: 'julho' , value: '7' },
+        { label: 'agosto' , value: '8' },
+        { label: 'setembro' , value: '9' },
+        { label: 'outubro' , value: '10' },
+        { label: 'novembro' , value: '11' },
+        { label: 'dezembro' , value: '12' }
+      ],
       actualClientsPage: 1,
       maxClientsPages: 1,
       defLimit: 10,
       clientName: '',
       childName: '',
-      birthStartT: '',
-      birthEndT: '',
+      birthStartDayMonth: '',
+      birthEndDayMonth: '',
       lastBuyStartT: '',
       lastBuyEndT: ''
     }
@@ -191,14 +226,14 @@ export default {
 
   methods:{
 
-    async loadClients(limit, offset, clientName=null, childrenName=null, startChildrenBirthDate=null, endChildrenBirthDate=null, startLastSaleDate=null, endLastSaleDate=null){
+    async loadClients(limit, offset, clientName=null, childrenName=null, startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null){
 
       this.clientIds = [];
       this.tableClients['content'] = [];
 
       let vreturn = await this.$root.doRequest(
         Requests.getClients,
-        [ limit, offset, clientName, childrenName, startChildrenBirthDate, endChildrenBirthDate, startLastSaleDate, endLastSaleDate ]
+        [ limit, offset, clientName, childrenName, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['clients']){
@@ -221,8 +256,10 @@ export default {
 
         this.clientName = clientName;
         this.childName = childrenName;
-        this.birthStartT = startChildrenBirthDate;
-        this.birthEndT = endChildrenBirthDate;
+
+        this.birthStartDayMonth = startChildrenBirthDayMonth;
+        this.birthEndDayMonth = endChildrenBirthDayMonth;
+
         this.lastBuyStartT = startLastSaleDate;
         this.lastBuyEndT = endLastSaleDate;
       }
@@ -235,20 +272,30 @@ export default {
       
       let clientName = this.$refs.nameInput.getV();
       let childName = this.$refs.childnameInput.getV();
-      let birthStartT = this.$refs.birthStartInput.getV();
-      let birthEndT = this.$refs.birthEndInput.getV();
+      let birthStartDay = this.$refs.birthStartDayInput.getV();
+      let birthStartMonth = this.$refs.birthStartMonthInput.getV();
+      let birthEndDay = this.$refs.birthEndDayInput.getV();
+      let birthEndMonth = this.$refs.birthEndMonthInput.getV();
       let lastBuyStartT = this.$refs.lastBuyStartInput.getV();
       let lastBuyEndT = this.$refs.lastBuyEndInput.getV();
 
-      await this.loadClients(this.defLimit, 0, clientName, childName, birthStartT, birthEndT, lastBuyStartT, lastBuyEndT);
+      let birthStartDayMonth = String(birthStartMonth) + '-' + String(birthStartDay);
+      let birthEndDayMonth = String(birthEndMonth) + '-' + String(birthEndDay);
+
+      console.log(birthStartDayMonth);
+      console.log(birthEndDayMonth);
+
+      await this.loadClients(this.defLimit, 0, clientName, childName, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
     },
 
     async cleanFilter(){
 
       this.$refs.nameInput.setV('');
       this.$refs.childnameInput.setV('');
-      this.$refs.birthStartInput.setV('');
-      this.$refs.birthEndInput.setV('');
+      this.$refs.birthStartDayInput.setV('');
+      this.$refs.birthStartMonthInput.setV('');
+      this.$refs.birthEndDayInput.setV('');
+      this.$refs.birthEndMonthInput.setV('');
       this.$refs.lastBuyStartInput.setV('');
       this.$refs.lastBuyEndInput.setV('');
 
@@ -262,8 +309,8 @@ export default {
         (this.actualClientsPage-2)*10,
         this.clientName,
         this.childName,
-        this.birthStartT,
-        this.birthEndT,
+        this.birthStartDayMonth,
+        this.birthEndDayMonth,
         this.lastBuyStartT,
         this.lastBuyEndT)
     },
@@ -275,8 +322,8 @@ export default {
         this.actualClientsPage*10,
         this.clientName,
         this.childName,
-        this.birthStartT,
-        this.birthEndT,
+        this.birthStartDayMonth,
+        this.birthEndDayMonth,
         this.lastBuyStartT,
         this.lastBuyEndT)
     },
@@ -325,6 +372,12 @@ export default {
   .nameInput, .childnameInput{
     width: calc(90% - 100px);
   }
+  .birthStartDayInput, .birthEndDayInput{
+    width: 55px;
+  }
+  .birthStartMonthInput, .birthEndMonthInput{
+    width: 138px;
+  }
   .filterButton, .clearFilterButton{
     display: inline-block;
     width: 20%;
@@ -347,6 +400,14 @@ export default {
   .nameInputWrapper, .childNameInputWrapper{
     display: block;
     margin-top: 10px;
+  }
+  .birthStartDayInput, .birthEndDayInput{
+    display: inline-block;
+    width: 30%;
+  }
+  .birthStartMonthInput, .birthEndMonthInput{
+    display: inline-block;
+    width: 70%;
   }
   .filterButton, .clearFilterButton{
     display: block;
