@@ -241,20 +241,25 @@ export default {
     /** JWT control methods **/
     async getOrUpdateGetJwt(){
 
+      var vreturn = {};
       this.jwt = ClientStorage.getJwtToken();
+      
+      if(this.jwt != null){
 
-      if(this.jwt != null && this.isJwtExpired){
-
-        let vreturn = await this.doTokenUpdateRequest(this.jwt);
-        if( vreturn && vreturn['ok'] ) {
-          this.isJwtExpired = false;
-          this.jwt = ClientStorage.getJwtToken();
+        if(!this.isJwtExpired){
+          vreturn['response'] = { 'token_jwt': this.jwt };
+          vreturn['ok'] = true;
         }
         else{
-          return vreturn;
+          vreturn = await this.doTokenUpdateRequest(this.jwt);
+
+          if(vreturn && vreturn['ok']) {
+            this.isJwtExpired = false;
+            this.jwt = ClientStorage.getJwtToken();
+          }
         }
       }
-      return this.jwt;
+      return vreturn;
     },
     setJwtExpiresInterval() {
       var self = this;
@@ -333,6 +338,7 @@ export default {
     async doRequest(requestF, requestArgs, doAuth = true){
 
       var vreturn = {};
+      var tmpVreturn = {}
 
       try{
         this.isLoadingModalEnabled = true;
@@ -340,10 +346,10 @@ export default {
         // if the token expires before request is send, update token
         if(doAuth && this.isJwtExpired){
 
-          let tmpVreturn = await this.getOrUpdateGetJwt();
+          tmpVreturn = await this.getOrUpdateGetJwt();
 
           if(tmpVreturn == null || !tmpVreturn['ok']){
-            vreturn['message'] = 'Error trying to authenticate first in doRequest: ' + tmpVreturn ? tmpVreturn['message'] : '';
+            vreturn['message'] = 'Error trying to authenticate first in doRequest: ' + tmpVreturn ? String(tmpVreturn['message']) : '';
             vreturn['status'] = tmpVreturn['status'];
             throw '';
           }
@@ -354,10 +360,10 @@ export default {
         // if the token expires in same moment of an failed request, update token and redo request
         if( doAuth && this.isJwtExpired && ( !vreturn || !vreturn['ok'])){
 
-          let tmpVreturn = await this.getOrUpdateGetJwt();
+          tmpVreturn = await this.getOrUpdateGetJwt();
 
           if(tmpVreturn == null || !tmpVreturn['ok']){
-            vreturn['message'] = 'Error trying to authenticate second in doRequest: ' + tmpVreturn ? tmpVreturn['message'] : '';
+            vreturn['message'] = 'Error trying to authenticate second in doRequest: ' + tmpVreturn ? String(tmpVreturn['message']) : '';
             vreturn['status'] = tmpVreturn['status'];
             throw '';
           }
@@ -367,6 +373,8 @@ export default {
         return vreturn;
       }
       catch(error){
+        console.log(vreturn);
+        console.log(tmpVreturn);
         vreturn['method'] = 'Exception in doRequest method: ' + error.message;
         return vreturn;
       }

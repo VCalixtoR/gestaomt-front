@@ -13,6 +13,7 @@
           <LabelC for="nameInput"
             labelText="Nome"
             class="plabel leftLabel"
+            useRequiredChar
           />
           <InputC id="nameInput"
             ref="nameInput"
@@ -27,6 +28,7 @@
           <LabelC for="codeInput"
             labelText="Código"
             class="plabel"
+            useRequiredChar
           />
           <InputC id="codeInput"
             ref="codeInput"
@@ -43,6 +45,7 @@
           <LabelC for="typeSelect"
             labelText="Tipos"
             class="plabel leftLabel"
+            useRequiredChar
           />
           <SelectMultipleC id="typeSelect"
             ref='typeSelect'
@@ -366,6 +369,11 @@ export default {
 
       if(codeInputV.length < 3 || codeInputV.length > 20){
         this.$root.renderMsg('warn', 'Código inválido!', 'Necessário de 3 a 20 caracteres.');
+        return;
+      }
+
+      if(!typeSelectIds || typeSelectIds.length <= 0){
+        this.$root.renderMsg('warn', 'Tipos inválidos!', 'Necessário associar pelo menos um tipo ao produto.');
         return;
       }
 

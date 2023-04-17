@@ -253,9 +253,9 @@ export default {
     return {
       productIds: [],
       tableProducts: {
-        'titles': [ 'Código', 'Nome', 'Tipos', 'Coleções', 'Estoque', 'Preços', 'Editar' ],
-        'colTypes': [ 'string', 'string', 'string-list', 'string-list', 'string-list', 'string-list', 'edit' ],
-        'colWidths': [ '10%', '20%', '17%', '17%', '20%', '10%', '6%' ],
+        'titles': [ 'Código', 'Nome', 'Tipos', 'Estoque e Preço', 'Editar' ],
+        'colTypes': [ 'string', 'string', 'string-list', 'string-list', 'edit' ],
+        'colWidths': [ '15%', '25%', '20%', '35%', '5%' ],
         'content': []
       },
 
@@ -280,6 +280,8 @@ export default {
       priceStart: '',
       priceEnd: '',
 
+      showColorsInProductName: true,
+      showOthersInProductName: true,
       createdDone: false
     }
   },
@@ -333,24 +335,31 @@ export default {
           this.productIds.push(product['product_id']);
 
           // splits before to avoid splitting in map several times
+          // size
           let productSizeNames = product['product_size_names'].split(',');
-
+          // colors
           let productColorNames = product['product_color_names'] && product['product_color_names'].length > 0 ? 
             product['product_color_names'].split(',') : null;
-
-          let productOtherNames = product['product_other_names'] && product['product_other_names'].length > 0 ? 
+          // others
+            let productOtherNames = product['product_other_names'] && product['product_other_names'].length > 0 ? 
             product['product_other_names'].split(',') : null;
-
+          // quantitys
           let productQuantityes = product['customized_product_quantityes'].split(',');
+          // prices
+          let productPrices = product['customized_product_prices'].split(',').map(x => Utils.getCurrencyFormat(x));
 
           let productsResume = [];
+
           productSizeNames.forEach((size, i) => {
-            productsResume.push(
-              size + ' ' + 
-              (productColorNames ? productColorNames[i] : '') + ' ' + 
-              (productOtherNames ? productOtherNames[i] : '') + ' : ' + 
-              productQuantityes[i]
-            );
+            if(productQuantityes > 0){
+              productsResume.push(
+                size + ' ' + 
+                (productColorNames && this.showColorsInProductName ? productColorNames[i] : '') + ' ' + 
+                (productOtherNames && this.showOthersInProductName ? productOtherNames[i] : '') + ' : ' + 
+                productQuantityes[i] + ' : ' +
+                productPrices[i]
+              );
+            }
           })
           
           // inserts to table
@@ -358,12 +367,11 @@ export default {
             product['product_code'],
             product['product_name'],
             product['product_type_names'] && product['product_type_names'].length > 0 ? product['product_type_names'].split(',') : ['---'],
-            product['product_collection_names'] && product['product_collection_names'].length > 0 ? product['product_collection_names'].split(',') : ['---'],
-            
-            productsResume,
 
-            product['customized_product_prices'] && product['customized_product_prices'].length > 0 ? 
-              (product['customized_product_prices'].split(',')).map(x => Utils.getCurrencyFormat(x)) : ['---'],
+            //product['product_collection_names'] && product['product_collection_names'].length > 0 ? product['product_collection_names'].split(',') : ['---'],
+            
+            productsResume && productsResume.length > 0 ? productsResume : ['---'],
+
             { 'showEdit': true }]);
         });
 
