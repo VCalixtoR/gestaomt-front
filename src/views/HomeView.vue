@@ -6,7 +6,7 @@
 
       <div class="dashText">
         <TextC colorClass="black1" fontSize='var(--text-normal)'>
-          Bem vindo {{$root.userLoggedData['name']}}.
+          Bem vinda {{$root.userLoggedData['name']}}.
         </TextC>
       </div>
 
