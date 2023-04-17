@@ -483,8 +483,8 @@ export default {
       let maxDateMs = new Date().setFullYear( curDate.getFullYear() - 10 );
       let maxDateChildMs = new Date().setFullYear( curDate.getFullYear() - 5 );
 
-      if(nameV.length < 10 || nameV.split(' ').length < 2 || nameV.length > 50){
-        this.$root.renderMsg('warn', 'Nome inválido!', 'Necessário de 10 a 50 caracteres com um sobrenome no mínimo.');
+      if(nameV.length < 5 || nameV.length > 50){
+        this.$root.renderMsg('warn', 'Nome inválido!', 'Necessário de 5 a 50 caracteres com um sobrenome no mínimo.');
         return;
       }
 
@@ -569,21 +569,17 @@ export default {
           this.$root.renderMsg('warn', 'Nome inválido!', 'O nome do filho na posição ' + (i+1) + ' deve conter no mínimo 3 letras.');
           return;
         }
+        
+        if(child[1]){
+          let childBirthVMs = new Date(child[1]).getTime();
 
-        if(child[1] == null || child[1] == ''){
-          this.$root.renderMsg('warn', 'Data de Nascimento do filho ' + (i+1) + ' inválida!',
-            'A data deve estar no formato dd/mm/aaaa e estar no intervalo de 5 a 100 anos anteriores, O campo é obrigatório');
-          return;
+          if(minDateMs > childBirthVMs || childBirthVMs > maxDateChildMs){
+            this.$root.renderMsg('warn', 'Data de Nascimento do filho ' + (i+1) + ' inválida!',
+              'A data deve estar no formato dd/mm/aaaa e estar no intervalo de 5 a 100 anos anteriores, O campo é opcional');
+            return;
+          }
         }
-
-        let childBirthVMs = new Date(child[1]).getTime();
-
-        if(minDateMs > childBirthVMs || childBirthVMs > maxDateChildMs){
-          this.$root.renderMsg('warn', 'Data de Nascimento do filho ' + (i+1) + ' inválida!',
-            'A data deve estar no formato dd/mm/aaaa e estar no intervalo de 5 a 100 anos anteriores, O campo é obrigatório');
-          return;
-        }
-
+        
         childrenV.push({ "children_name": child[0], "children_birth_date": child[1], "children_product_size_id": child[2] });
       };
 

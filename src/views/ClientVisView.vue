@@ -246,7 +246,7 @@ export default {
             Utils.getCurrencyFormat(client['last_sale_total_value']),
             client['children'] && client['children'].length > 0 ? client['children'].map(x => x['children_name']) : ['---'],
             client['children'] && client['children'].length > 0 ? 
-              client['children'].map(x => Utils.getDateString( x['children_birth_date'])): 
+              client['children'].map(x => (x['children_birth_date'] && x['children_birth_date'].length > 0 ? Utils.getDateString( x['children_birth_date']) : '---' )): 
               ['---'],
             { 'showEdit': true }]);
         });
