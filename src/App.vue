@@ -153,7 +153,11 @@ export default {
       
       if(!isKnownMsg){
 
-        if(vreturn && vreturn['status'] == 401){
+        if(vreturn && vreturn['status'] == 401 && (!vreturn['response'] || ( vreturn['response'] && 
+          vreturn['response']['message'] != 'Usuário não encontrado!' && 
+          vreturn['response']['message'] != 'Senha incorreta!'&& 
+          vreturn['response']['message'] != 'Você precisa de permissão de um admin para entrar!' ))){
+
           let self = this;
           this.renderMsg('warn', 'Login Expirado', ['Por favor realize o login novamente'], function () { self.$root.renderView('login'); });
         }

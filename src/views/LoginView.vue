@@ -137,7 +137,7 @@ export default {
       }
       else{
         ClientStorage.removeJwtToken();
-        this.$root.renderRequestErrorMsg(vreturn, ['Usuário não encontrado!', 'Senha incorreta!']);
+        this.$root.renderRequestErrorMsg(vreturn, ['Usuário não encontrado!', 'Senha incorreta!', 'Você precisa de permissão de um admin para entrar!']);
       }
     }
   }
