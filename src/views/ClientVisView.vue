@@ -279,11 +279,8 @@ export default {
       let lastBuyStartT = this.$refs.lastBuyStartInput.getV();
       let lastBuyEndT = this.$refs.lastBuyEndInput.getV();
 
-      let birthStartDayMonth = String(birthStartMonth) + '-' + String(birthStartDay);
-      let birthEndDayMonth = String(birthEndMonth) + '-' + String(birthEndDay);
-
-      console.log(birthStartDayMonth);
-      console.log(birthEndDayMonth);
+      let birthStartDayMonth = birthStartMonth && birthStartDay ? String(birthStartMonth) + '-' + String(birthStartDay) : null;
+      let birthEndDayMonth = birthEndMonth && birthEndDay ? String(birthEndMonth) + '-' + String(birthEndDay) : null;
 
       await this.loadClients(this.defLimit, 0, clientName, childName, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
     },
