@@ -86,7 +86,7 @@
             class="plabel leftLabel"
             useRequiredChar
           />
-          <SelectC id="sizeSelect"
+          <SelectWithFilter id="sizeSelect"
             ref='sizeSelect'
             class="pselect sizeSelect"
             colorClass="pink3"
@@ -100,7 +100,7 @@
             labelText="Cores"
             class="plabel"
           />
-          <SelectC id="colorSelect"
+          <SelectWithFilter id="colorSelect"
             ref='colorSelect'
             class="pselect colorSelect"
             colorClass="pink3"
@@ -114,7 +114,7 @@
             labelText="Outros"
             class="plabel"
           />
-          <SelectC id="othersSelect"
+          <SelectWithFilter id="othersSelect"
             ref='othersSelect'
             class="pselect othersSelect"
             colorClass="pink3"
@@ -130,7 +130,7 @@
             labelText="Quantidade"
             class="plabel leftLabel"
           />
-          <SelectC id="quantitySelect"
+          <SelectWithFilter id="quantitySelect"
             ref='quantitySelect'
             class="pselect quantitySelect"
             colorClass="pink3"
@@ -234,7 +234,7 @@ import ButtonPlusC from '../components/ButtonPlusC.vue'
 import InputC from '../components/InputC.vue'
 import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
-import SelectC from '../components/SelectC.vue'
+import SelectWithFilter from '../components/SelectWithFilter.vue'
 import TablePink from '../components/TablePink.vue'
 import TextC from '../components/TextC.vue'
 
@@ -247,7 +247,7 @@ export default {
     ButtonPlusC,
     InputC,
     LabelC,
-    SelectC,
+    SelectWithFilter,
     TablePink,
     TextC
   },
