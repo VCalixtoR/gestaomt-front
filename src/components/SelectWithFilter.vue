@@ -3,9 +3,7 @@
   <!-- I created my own select to set css correctly -->
 
   <div :id="'selectWFWrapper' + this.id"
-    class='selectWFWrapper'
-    @focusout='this.handleOutClick()'
-    tabindex="0">
+    class='selectWFWrapper'>
 
     <div :class="'selectBox ' + this.colorClass"
       ref='selectBox'
@@ -20,23 +18,24 @@
         :ref="'input' + this.id"
         :name="this.name"
         :type="this.type"
-        :value="this.items && this.items.length > 0 ? this.items[this.actualOptSelected].label : '---'"
         :style="{
           'font-weight': this.fontWeight,
           'font-size': this.fontSize,
         }"
-        @click="this.handleSelClick(true)"
+        @click="this.handleInputClick()"
         @input="this.handleInputChange()"
+        @focusout="this.handleInputOutClick()"
+        autocomplete="off"
       />
       
       <font-awesome-icon v-if="this.items && this.items.length && this.iconVisible"
         class='selchevron'
         icon='fa-solid fa-chevron-down'
-        @click="this.handleSelClick()"
+        @click="this.handleChevronClick()"
       />
     </div>
 
-    <div :class="'selectOpts ' + this.colorClass" v-if="this.items && this.items.length > 0" v-show="this.showOptsT"
+    <div :class="'selectOpts ' + this.colorClass" v-if="this.selectedItems && this.selectedItems.length > 0" v-show="this.showOptsT"
       ref='selectOpts'
       :style="{
         'min-width': this.selectOptsWidth,
@@ -46,10 +45,10 @@
         'overflow': 'auto'
         }">
       <ul ref='selectUl'>
-        <li v-for="(item, index) in this.items" :key="index" ref='opts'
+        <li v-for="(item, index) in this.selectedItems" :key="index" ref='opts'
           :class="'selectOpt ' + this.colorClass"
           :value="item.value"
-          @click="this.handleOptClick(index)">
+          @click="this.handleOptionClick(item.label)">
 
           {{item.label}}
 
@@ -103,17 +102,23 @@ export default {
 
   data() {
     return {
-      actualOptSelected: 0,
+      selectedItems: null,
+      actualOptSelected: null,
+      doInputClear: true,
       showOptsT: false,
       selectOptsWidth: 'auto'
     }
   },
 
   mounted(){
+    this.selectedItems = this.items;
+    this.$refs['input' + this.id].value = '---';
+
     if(this.initialOptValue){
       for(let i = 0; i < this.items.length; i++){
         if(this.items[i].value == this.initialOptValue){
           this.actualOptSelected = i;
+          this.$refs['input' + this.id].value = this.items[i].label;
         }
       }
     }
@@ -125,12 +130,11 @@ export default {
       document.getElementById('selectWFWrapper' + this.id).focus();
     },
     getV(){
-      return this.items[this.actualOptSelected].value;
+      return this.actualOptSelected != null ? this.items[this.actualOptSelected].value : null;
     },
     setV(value){
-
       if(!value){
-        this.actualOptSelected = 0;
+        this.actualOptSelected = null;
       }
       else{
         this.items.forEach( (item, index) => {
@@ -139,27 +143,63 @@ export default {
           }
         });
       }
+      this.selectedItems = this.items;
     },
-    handleSelClick(fromInput=false){
+    // On chevron click resets selectedItems showopts with input focused or hideopts
+    handleChevronClick(){
+      this.selectedItems = this.items;
       this.selectOptsWidth = this.$refs.selectBox.offsetWidth + 'px';
-      if(fromInput){
-        this.showOptsT = true;
+      if(!this.showOptsT){
+        this.doInputClear = true;
+        this.$refs['input' + this.id].focus();
+        this.$refs['input' + this.id].click();
       }
       else{
-        this.showOptsT = !this.showOptsT;
+        this.showOptsT = false;
       }
     },
-    handleOptClick(index){
-      this.actualOptSelected = index;
-      this.showOptsT = !this.showOptsT;
-      this.$emit('optClicked',this.items[index]['value']);
+    // On input click conditionally clears input and show opts
+    handleInputClick(){
+      if(this.doInputClear){
+        this.doInputClear = false;
+        this.selectedItems = this.items;
+        this.$refs['input' + this.id].value = '';
+      }
+      this.selectOptsWidth = this.$refs.selectBox.offsetWidth + 'px';
+      this.showOptsT = true;
     },
+    // On input change selectedItems not case sensitive
     handleInputChange(){
-      // filtrar e gg
-      console.log(this.$refs['input' + this.id].value);
+      let tmpSelectedItems = [];
+      let inputV = this.$refs['input' + this.id].value;
+
+      for(let i = 0; i < this.items.length; i++){
+        if(this.items[i]['label'].toLowerCase().includes(inputV.toLowerCase())){
+          tmpSelectedItems.push(this.items[i]);
+        }
+      }
+      this.selectedItems = tmpSelectedItems;
     },
-    handleOutClick(){
-      this.showOptsT = false;
+    // On option click sets option based on its label and emit optClicked event
+    handleOptionClick(label){
+      for(let i = 0; i < this.items.length; i++){
+        if(this.items[i].label == label){
+          this.actualOptSelected = i;
+          this.$refs['input' + this.id].value = this.items[i].label;
+          this.showOptsT = !this.showOptsT;
+          this.$emit('optClicked',this.items[i].value);
+          return;
+        }
+      }
+    },
+    // On outclick, waits 100 ms to close options, needed to wait handleOptionClick event
+    async handleInputOutClick(){
+      let pageContext = this;
+      setTimeout(function() {
+        pageContext.$refs['input' + pageContext.id].value = pageContext.actualOptSelected != null ? pageContext.items[pageContext.actualOptSelected].label : '---';
+        pageContext.showOptsT = false;
+        pageContext.doInputClear = true;
+      }, 100);
     }
   }
 }

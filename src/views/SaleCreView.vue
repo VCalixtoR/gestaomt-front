@@ -86,7 +86,7 @@
             class="plabel leftLabel"
             useRequiredChar
           />
-          <SelectWithFilter id="sizeSelect"
+          <SelectWithFilter id="sizeSelect" :key="sizeSelectKeyToReRender"
             ref='sizeSelect'
             class="pselect sizeSelect"
             colorClass="pink3"
@@ -100,7 +100,7 @@
             labelText="Cores"
             class="plabel"
           />
-          <SelectWithFilter id="colorSelect"
+          <SelectWithFilter id="colorSelect" :key="colorSelectKeyToReRender"
             ref='colorSelect'
             class="pselect colorSelect"
             colorClass="pink3"
@@ -114,7 +114,7 @@
             labelText="Outros"
             class="plabel"
           />
-          <SelectWithFilter id="othersSelect"
+          <SelectWithFilter id="othersSelect" :key="othersSelectKeyToReRender"
             ref='othersSelect'
             class="pselect othersSelect"
             colorClass="pink3"
@@ -136,6 +136,7 @@
             colorClass="pink3"
             name="quantity"
             :items="this.quantitySelectItems"
+            :initialOptValue="1"
           />
         </div>
 
@@ -278,6 +279,9 @@ export default {
         'content': []
       },
 
+      sizeSelectKeyToReRender: 0,
+      colorSelectKeyToReRender: 0,
+      othersSelectKeyToReRender: 0,
       productkeyToReRender: 0,
       saleKeyToReRender: 0
     }
@@ -293,6 +297,11 @@ export default {
       this.sizeSelectItems = loadedInfo['sizes'].map(x => ({'label': x['product_size_name'], 'value': x['product_size_id']}));
       this.colorSelectItems = loadedInfo['colors'].map(x => ({'label': x['product_color_name'], 'value': x['product_color_id']}));
       this.othersSelectItems = loadedInfo['others'].map(x => ({'label': x['product_other_name'], 'value': x['product_other_id']}));
+
+      // update keys to render objects correctly
+      this.sizeSelectKeyToReRender++;
+      this.colorSelectKeyToReRender++;
+      this.othersSelectKeyToReRender++;
     }
     else{
       this.$root.renderRequestErrorMsg(vreturn, ['Produto não encontrado']);

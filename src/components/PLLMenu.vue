@@ -147,7 +147,7 @@ export default {
           { subLabel: "Visualizar", view: '', sSelected: false, sHover: false }
         ] },
         { label: "Vendas", faIconName: "money-bill", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
-          { subLabel: "Gerar", view: '', sSelected: false, sHover: false }, 
+          { subLabel: "Gerar", view: 'cadastrarvenda', sSelected: false, sHover: false }, 
           { subLabel: "Visualizar", view: '', sSelected: false, sHover: false }
         ] },
         { label: "Funcionários", faIconName: "users", view: 'admfuncionarios', admAcessOnly: true, iSelected: false, iHover: false, subItemsShow: false, subItems: [] },
