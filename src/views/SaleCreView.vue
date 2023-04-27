@@ -10,18 +10,19 @@
 
       <div class="pageSectionRow">
         <div class="row1Left">
-          <LabelC for="cliNameInput"
+          <LabelC for="cliNameSelect"
             labelText="Nome"
             useRequiredChar
             class="plabel leftLabel"
           />
-          <InputC id="cliNameInput"
-            ref="cliNameInput"
-            class="pinput cliNameInput"
-            type="text"
+          <SelectWithFilter :key="cliNameSelectKeyToReRender"
+            id="cliNameSelect" 
+            ref='cliNameSelect'
+            class="pselect cliNameSelect"
+            colorClass="pink3"
             name="cliname"
-            maxlength="50"
-            :onlyLetters="true"
+            :items="this.cliNameSelectItems"
+            @optClicked="(itemValue) => this.updateCpf(itemValue)"
           />
         </div>
 
@@ -36,6 +37,7 @@
             type="text"
             name="clicpf"
             mask='###.###.###-##'
+            disabled
           />
         </div>
       </div>
@@ -49,32 +51,36 @@
 
       <div class="pageSectionRow">
         <div class="row2Left">
-          <LabelC for="nameInput"
+          <LabelC for="nameSelect"
             labelText="Nome"
             class="plabel leftLabel"
             useRequiredChar
           />
-          <InputC id="nameInput"
-            ref="nameInput"
-            class="pinput nameInput"
-            type="text"
+          <SelectWithFilter :key="nameSelectKeyToReRender"
+            id="nameSelect"
+            ref="nameSelect"
+            class="pselect nameSelect"
+            colorClass="pink3"
             name="name"
-            maxlength="50"
+            :items="this.nameSelectItems"
+            @optClicked="(itemValue) => this.updateProduct(itemValue)"
           />
         </div>
 
         <div class="row2Right">
-          <LabelC for="codeInput"
+          <LabelC for="codeSelect"
             labelText="Código"
             class="plabel"
             useRequiredChar
           />
-          <InputC id="codeInput"
-            ref="codeInput"
-            class="pinput codeInput"
-            type="text"
+          <SelectWithFilter :key="codeSelectKeyToReRender"
+            id="codeSelect" 
+            ref="codeSelect"
+            class="pselect codeSelect"
+            colorClass="pink3"
             name="code"
-            maxlength="20"
+            :items="this.codeSelectItems"
+            @optClicked="(itemValue) => this.updateProduct(itemValue)"
           />
         </div>
       </div>
@@ -105,6 +111,7 @@
             class="pselect colorSelect"
             colorClass="pink3"
             name="color"
+            :inputDisabled="this.colorSelectItems.length == 0"
             :items="this.colorSelectItems"
           />
         </div>
@@ -119,6 +126,7 @@
             class="pselect othersSelect"
             colorClass="pink3"
             name="others"
+            :inputDisabled="this.othersSelectItems.length == 0"
             :items="this.othersSelectItems"
           />
         </div>
@@ -255,6 +263,9 @@ export default {
 
   data() {
     return {
+      cliNameSelectItems: [],
+      nameSelectItems: [],
+      codeSelectItems: [],
       sizeSelectItems: [],
       colorSelectItems: [],
       othersSelectItems: [],
@@ -279,29 +290,46 @@ export default {
         'content': []
       },
 
-      sizeSelectKeyToReRender: 0,
-      colorSelectKeyToReRender: 0,
-      othersSelectKeyToReRender: 0,
-      productkeyToReRender: 0,
-      saleKeyToReRender: 0
+      cliNameSelectKeyToReRender: 0,
+      nameSelectKeyToReRender: 1000,
+      codeSelectKeyToReRender: 2000,
+      sizeSelectKeyToReRender: 3000,
+      colorSelectKeyToReRender: 4000,
+      othersSelectKeyToReRender: 5000,
+      productkeyToReRender: 6000,
+      saleKeyToReRender: 7000,
+
+      loadedInfo: null
     }
   },
 
   async created() {
     this.$root.setPageLoggedName('Geração de Vendas');
 
-    let vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
+    // clients
+    let vreturn = await this.$root.doRequest(
+      Requests.getClients,
+      [ true, null, null, null, null, null, null, null, null ]
+    );
 
     if(vreturn && vreturn['ok'] && vreturn['response']){
-      let loadedInfo = vreturn['response'];
-      this.sizeSelectItems = loadedInfo['sizes'].map(x => ({'label': x['product_size_name'], 'value': x['product_size_id']}));
-      this.colorSelectItems = loadedInfo['colors'].map(x => ({'label': x['product_color_name'], 'value': x['product_color_id']}));
-      this.othersSelectItems = loadedInfo['others'].map(x => ({'label': x['product_other_name'], 'value': x['product_other_id']}));
+      let loadedClients = vreturn['response']['clients'];
+      this.cliNameSelectItems = loadedClients.map(x => ({'label': x['client_name'], 'value': x['client_id'], 'cpf': x['client_cpf']}));
+    }
+    else{
+      this.$root.renderRequestErrorMsg(vreturn, []);
+      this.$root.renderView('home');
+    }
+    
+    // products
+    vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
 
-      // update keys to render objects correctly
-      this.sizeSelectKeyToReRender++;
-      this.colorSelectKeyToReRender++;
-      this.othersSelectKeyToReRender++;
+    if(vreturn && vreturn['ok'] && vreturn['response']){
+      this.loadedInfo = vreturn['response'];
+      console.log(this.loadedInfo);
+
+      this.nameSelectItems = this.loadedInfo['products'].map(x => ({'label': x['product_name'], 'value': x['product_id']}));
+      this.codeSelectItems = this.loadedInfo['products'].map(x => ({'label': x['product_code'], 'value': x['product_id']}));
     }
     else{
       this.$root.renderRequestErrorMsg(vreturn, ['Produto não encontrado']);
@@ -310,6 +338,83 @@ export default {
   },
 
   methods:{
+
+    // on client name selected updates its cpf
+    updateCpf(clientId){
+      this.$refs['cliCpfInput'].setV(this.cliNameSelectItems.find(x => x['value'] == clientId)['cpf']);
+    },
+    // on product name or code selected updates each and its personalization
+    updateProduct(productId){
+      this.$refs['nameSelect'].setV(productId);
+      this.$refs['codeSelect'].setV(productId);
+      this.updateProductPersonalization(this.$refs['codeSelect'].getL());
+    },
+    // get product personalization data and load selects with the data
+    async updateProductPersonalization(productCode){
+
+      let vreturn = await this.$root.doRequest(
+        Requests.getProduct,
+        [ productCode ]
+      );
+
+      if(vreturn && vreturn['ok'] && vreturn['response']){
+        let tmpSizeItems = [];
+        let tmpColorItems = [];
+        let tmpOthersItems = [];
+        this.sizeSelectItems = [];
+        this.colorSelectItems = [];
+        this.othersSelectItems = [];
+        
+        // foreach personalized info
+        vreturn['response']['customized_products'].forEach(perInfo => {
+          
+          // includes only once each size attribute
+          if(!tmpSizeItems.includes(perInfo['product_size_name'])){
+            let sizeObject = this.loadedInfo['sizes'].find(x => x['product_size_name'] == perInfo['product_size_name']);
+            
+            tmpSizeItems.push(sizeObject['product_size_name']);
+            this.sizeSelectItems.push({
+              'label': sizeObject['product_size_name'],
+              'value': sizeObject['product_size_id'],
+              'pos': sizeObject['product_size_pos']
+            });
+          }
+
+          // includes only once each color attribute
+          if(perInfo['product_color_name'] && !tmpColorItems.includes(perInfo['product_color_name'])){
+            let colorObject = this.loadedInfo['colors'].find(x => x['product_color_name'] == perInfo['product_color_name']);
+
+            tmpColorItems.push(colorObject['product_color_name']);
+            this.colorSelectItems.push({
+              'label': colorObject['product_color_name'],
+              'value': colorObject['product_color_id'],
+              'pos': colorObject['product_color_pos']
+            });
+          }
+
+          // includes only once each other attribute
+          if(perInfo['product_other_name'] && !tmpOthersItems.includes(perInfo['product_other_name'])){
+            let otherObject = this.loadedInfo['others'].find(x => x['product_other_name'] == perInfo['product_other_name']);
+
+            tmpOthersItems.push(otherObject['product_other_name']);
+            this.othersSelectItems.push({
+              'label': otherObject['product_other_name'],
+              'value': otherObject['product_other_id'],
+              'pos': otherObject['product_other_pos']
+            });
+          }
+        });
+
+        // update keys to render objects correctly
+        this.sizeSelectKeyToReRender++;
+        this.colorSelectKeyToReRender++;
+        this.othersSelectKeyToReRender++;
+      }
+      else{
+        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderView('home');
+      }
+    },
 
     addContact(){
       this.tableContactItems['content'].push(this.getContactArr());
@@ -610,10 +715,10 @@ export default {
   .leftLabel{
     width: 95px;
   }
-  .cliNameInput, .nameInput{
+  .cliNameSelect, .nameSelect{
     width: 60%;
   }
-  .cliCpfInput, .codeInput{
+  .cliCpfInput, .codeSelect{
     width: 50%;
   }
   .sizeSelect, .quantitySelect{

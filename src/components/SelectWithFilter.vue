@@ -5,7 +5,7 @@
   <div :id="'selectWFWrapper' + this.id"
     class='selectWFWrapper'>
 
-    <div :class="'selectBox ' + this.colorClass"
+    <div :class="'selectBox ' + this.colorClass + (this.inputDisabled ? ' disabled' : '')"
       ref='selectBox'
       :style="{
         'padding': this.selectBoxPadding,
@@ -18,6 +18,7 @@
         :ref="'input' + this.id"
         :name="this.name"
         :type="this.type"
+        :disabled="this.inputDisabled"
         :style="{
           'font-weight': this.fontWeight,
           'font-size': this.fontSize,
@@ -97,6 +98,10 @@ export default {
     type: {
       default: 'text',
       type: String
+    },
+    inputDisabled: {
+      default: false,
+      type: Boolean
     }
   },
 
@@ -130,15 +135,19 @@ export default {
       document.getElementById('selectWFWrapper' + this.id).focus();
     },
     getV(){
-      return this.actualOptSelected != null ? this.items[this.actualOptSelected].value : null;
+      return this.actualOptSelected != null && this.actualOptSelected != undefined ? this.items[this.actualOptSelected].value : null;
+    },
+    getL(){
+      return this.actualOptSelected != null && this.actualOptSelected != undefined ? this.items[this.actualOptSelected].label : null;
     },
     setV(value){
-      if(!value){
+      if(value == null || value == undefined){
         this.actualOptSelected = null;
       }
       else{
         this.items.forEach( (item, index) => {
           if(item.value == value){
+            this.$refs['input' + this.id].value = this.items[index].label;
             this.actualOptSelected = index;
           }
         });
@@ -147,6 +156,11 @@ export default {
     },
     // On chevron click resets selectedItems showopts with input focused or hideopts
     handleChevronClick(){
+
+      if(this.inputDisabled){
+        return;
+      }
+
       this.selectedItems = this.items;
       this.selectOptsWidth = this.$refs.selectBox.offsetWidth + 'px';
       if(!this.showOptsT){
@@ -160,6 +174,11 @@ export default {
     },
     // On input click conditionally clears input and show opts
     handleInputClick(){
+
+      if(this.inputDisabled){
+        return;
+      }
+
       if(this.doInputClear){
         this.doInputClear = false;
         this.selectedItems = this.items;
@@ -274,6 +293,9 @@ export default {
   background-color: var(--color-pink3);
   color: var(--color-white);
 }
-
+.selectBox.pink3.disabled, .selectBox.pink3NoBorder.disabled {
+  color: var(--color-gray3);
+  background-color: var(--color-pink2);
+}
 
 </style>

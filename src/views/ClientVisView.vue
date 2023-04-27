@@ -233,7 +233,7 @@ export default {
 
       let vreturn = await this.$root.doRequest(
         Requests.getClients,
-        [ limit, offset, clientName, childrenName, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
+        [ false, limit, offset, clientName, childrenName, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['clients']){

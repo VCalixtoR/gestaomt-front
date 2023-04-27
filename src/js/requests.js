@@ -50,6 +50,26 @@ async function baseRequestFBody(headers, endpoint){
   }
 }
 
+function parseQueryStrFromObj(queryObj){
+
+  let queryString = '?';
+  let keyList = Object.keys(queryObj);
+  let started = false;
+
+  keyList.forEach((key, index) => {
+    if(queryObj[key]!=null && queryObj[key]!=undefined){
+      if(started){
+        queryString += `&${key}=${queryObj[key]}`
+      }
+      else{
+        started = true;
+        queryString += `${key}=${queryObj[key]}`
+      }
+    }
+  });
+  return queryString;
+}
+
 async function doLoginAuthentication(userMail, userPass){
 
   // password encrypted with SHA-256 algorithm to store in bd
@@ -315,16 +335,7 @@ async function getClient(token_jwt, args){
 
 async function getClients(token_jwt, args){
 
-  let limit = args[0];
-  let offset = args[1];
-  let client_name = (args[2] != null ? args[2] : '');
-  let children_name = (args[3] != null ? args[3] : '');
-  let children_birth_month_day_start = (args[4] != null ? args[4] : '');
-  let children_birth_month_day_end = (args[5] != null ? args[5] : '');
-  let last_sale_date_start = (args[6] != null ? args[6] : '');
-  let last_sale_date_end = (args[7] != null ? args[7] : '');
-
-  var myHeaders = {
+  let myHeaders = {
     method: 'GET',
     headers: {
       'Access-Control-Allow-Origin': '*',
@@ -332,7 +343,17 @@ async function getClients(token_jwt, args){
     }
   }
 
-  var querystring = `?limit=${limit}&offset=${offset}&client_name=${client_name}&children_name=${children_name}&children_birth_month_day_start=${children_birth_month_day_start}&children_birth_month_day_end=${children_birth_month_day_end}&last_sale_date_start=${last_sale_date_start}&last_sale_date_end=${last_sale_date_end}`;
+  let querystring = parseQueryStrFromObj({
+    'only_client_names_cpfs': args[0],
+    'limit': args[1],
+    'offset': args[2],
+    'client_name': args[3],
+    'children_name': args[4],
+    'children_birth_month_day_start': args[5],
+    'children_birth_month_day_end': args[6],
+    'last_sale_date_start': args[7],
+    'last_sale_date_end': args[8]
+  });
 
   let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`);
   return vreturn;
@@ -425,20 +446,6 @@ async function updateClient(token_jwt, args){
   return vreturn;
 }
 
-async function getProductInfo(token_jwt, _){
-
-  var myHeaders = {
-    method: 'GET',
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Authorization': `Bearer ${token_jwt}`
-    }
-  }
-
-  let vreturn = await baseRequestFBody(myHeaders, `product/info`);
-  return vreturn;
-}
-
 async function createProduct(token_jwt, args){
   
   var jsonBody = {};
@@ -463,6 +470,24 @@ async function createProduct(token_jwt, args){
   let vreturn = await baseRequestFBody(myHeaders, 'product');
   return vreturn;
 
+}
+
+async function getProduct(token_jwt, args){
+  
+  let myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let querystring = parseQueryStrFromObj({
+    'product_code': args[0]
+  });
+
+  let vreturn = await baseRequestFBody(myHeaders, `product${querystring}`);
+  return vreturn;
 }
 
 async function getProducts(token_jwt, args){
@@ -493,6 +518,20 @@ async function getProducts(token_jwt, args){
   }
   
   let vreturn = await baseRequestFBody(myHeaders, `products${querystring}`);
+  return vreturn;
+}
+
+async function getProductInfo(token_jwt, _){
+
+  var myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let vreturn = await baseRequestFBody(myHeaders, `product/info`);
   return vreturn;
 }
 
@@ -537,8 +576,9 @@ export default{
   getClients,
   createClient,
   updateClient,
-  getProductInfo,
   createProduct,
+  getProduct,
   getProducts,
+  getProductInfo,
   getEvents
 }
