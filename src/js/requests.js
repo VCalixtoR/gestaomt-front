@@ -387,6 +387,8 @@ async function createClient(token_jwt, args){
     jsonBody['client_contacts'] = args[11];
   if(args[12])
     jsonBody['client_children'] = args[12];
+  if(args[13])
+    jsonBody['client_observations'] = args[13];
 
   var myHeaders = {
     method: 'PUT',
@@ -407,30 +409,32 @@ async function updateClient(token_jwt, args){
   var jsonBody = {};
   jsonBody['client_id'] = args[0];
   jsonBody['client_name'] = args[1];
-  if(args[1])
-    jsonBody['client_cpf'] = args[2];
   if(args[2])
-    jsonBody['client_gender'] = args[3];
+    jsonBody['client_cpf'] = args[2];
   if(args[3])
-    jsonBody['client_birth_date'] = args[4];
+    jsonBody['client_gender'] = args[3];
   if(args[4])
-    jsonBody['client_cep'] = args[5];
+    jsonBody['client_birth_date'] = args[4];
   if(args[5])
-    jsonBody['client_adress'] = args[6];
+    jsonBody['client_cep'] = args[5];
   if(args[6])
-    jsonBody['client_city'] = args[7];
+    jsonBody['client_adress'] = args[6];
   if(args[7])
-    jsonBody['client_neighborhood'] = args[8];
+    jsonBody['client_city'] = args[7];
   if(args[8])
-    jsonBody['client_state'] = args[9];
+    jsonBody['client_neighborhood'] = args[8];
   if(args[9])
-    jsonBody['client_number'] = args[10];
+    jsonBody['client_state'] = args[9];
   if(args[10])
-    jsonBody['client_complement'] = args[11];
+    jsonBody['client_number'] = args[10];
   if(args[11])
-    jsonBody['client_contacts'] = args[12];
+    jsonBody['client_complement'] = args[11];
   if(args[12])
+    jsonBody['client_contacts'] = args[12];
+  if(args[13])
     jsonBody['client_children'] = args[13];
+  if(args[14])
+    jsonBody['client_observations'] = args[14];
   
   var myHeaders = {
     method: 'PATCH',

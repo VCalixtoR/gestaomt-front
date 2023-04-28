@@ -245,11 +245,24 @@
               @click="this.addChildren()"
             />
           </div>
-          
         </div>
-
       </div>
+    </div>
 
+    <div class="pageSection">
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Observações
+      </TextC>
+
+      <div class="pageSectionRow">
+        <TextAreaC
+          id="textAreaObservations"
+          name="textAreaObservations"
+          ref="textAreaObservations"
+          class="textAreaObservations"
+          :rows="5" :cols="200"
+        />
+      </div>
     </div>
 
     <div class="buttonsWrapper">
@@ -289,6 +302,7 @@ import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
 import SelectC from '../components/SelectC.vue'
 import TablePink from '../components/TablePink.vue'
+import TextAreaC from '../components/TextAreaC.vue'
 import TextC from '../components/TextC.vue'
 
 export default {
@@ -302,6 +316,7 @@ export default {
     LabelC,
     SelectC,
     TablePink,
+    TextAreaC,
     TextC
   },
 
@@ -477,6 +492,7 @@ export default {
       let complementV = this.$refs.complementInput.getV();
       let contactsV = [];
       let childrenV = [];
+      let observationsV = this.$refs.textAreaObservations.getV().trim();
 
       let curDate = new Date();
       let minDateMs = new Date().setFullYear( curDate.getFullYear() - 100 );
@@ -585,7 +601,7 @@ export default {
 
       let vreturn = await this.$root.doRequest(
         Requests.createClient,
-        [nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV]
+        [nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV, observationsV]
       );
 
       if(vreturn && vreturn['ok']){
@@ -628,6 +644,9 @@ export default {
 .pageSection{
   width: 100%;
   padding: 10px;
+}
+.textAreaObservations{
+  width: 100%;
 }
 .btnplusWrapper{
   text-align: center;
