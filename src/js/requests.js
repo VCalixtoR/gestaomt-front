@@ -535,6 +535,44 @@ async function getProductInfo(token_jwt, _){
   return vreturn;
 }
 
+async function createSale(token_jwt, args){
+  
+  var jsonBody = {};
+  jsonBody['sale_client_id'] = args[0];
+  jsonBody['sale_employee_id'] = args[1];
+  jsonBody['sale_payment_method_installment_id'] = args[2];
+  jsonBody['sale_total_discount_percentage'] = args[3];
+  jsonBody['sale_total_value'] = args[4];
+  jsonBody['sale_has_products'] = args[5];
+
+  var myHeaders = {
+    method: 'PUT',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(jsonBody)
+  }
+
+  let vreturn = await baseRequestFBody(myHeaders, 'sale');
+  return vreturn;
+}
+
+async function getSaleInfo(token_jwt, _){
+
+  var myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let vreturn = await baseRequestFBody(myHeaders, `sale/info`);
+  return vreturn;
+}
+
 async function getEvents(token_jwt, args){
 
   let limit = args[0];
@@ -580,5 +618,7 @@ export default{
   getProduct,
   getProducts,
   getProductInfo,
+  createSale,
+  getSaleInfo,
   getEvents
 }

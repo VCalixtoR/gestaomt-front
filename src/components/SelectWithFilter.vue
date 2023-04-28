@@ -70,7 +70,10 @@ export default {
     id: String,
     name: String,
     items: Array,
-    initialOptValue: [String, Number],
+    initialOptValue: {
+      default: null,
+      type: [String, Number]
+    },
     colorClass: {
       default: 'pink3',
       type: String
@@ -119,7 +122,7 @@ export default {
     this.selectedItems = this.items;
     this.$refs['input' + this.id].value = '---';
 
-    if(this.initialOptValue){
+    if(this.initialOptValue != null && this.initialOptValue != undefined){
       for(let i = 0; i < this.items.length; i++){
         if(this.items[i].value == this.initialOptValue){
           this.actualOptSelected = i;
@@ -140,9 +143,13 @@ export default {
     getL(){
       return this.actualOptSelected != null && this.actualOptSelected != undefined ? this.items[this.actualOptSelected].label : null;
     },
+    getObj(){
+      return this.actualOptSelected != null && this.actualOptSelected != undefined ? this.items[this.actualOptSelected] : null;
+    },
     setV(value){
-      if(value == null || value == undefined){
+      if(value == '' || value == null || value == undefined){
         this.actualOptSelected = null;
+        this.$refs['input' + this.id].value = '---';
       }
       else{
         this.items.forEach( (item, index) => {
@@ -211,14 +218,14 @@ export default {
         }
       }
     },
-    // On outclick, waits 100 ms to close options, needed to wait handleOptionClick event
+    // On outclick, waits 500 ms to close options, needed to wait handleOptionClick event
     async handleInputOutClick(){
       let pageContext = this;
       setTimeout(function() {
         pageContext.$refs['input' + pageContext.id].value = pageContext.actualOptSelected != null ? pageContext.items[pageContext.actualOptSelected].label : '---';
         pageContext.showOptsT = false;
         pageContext.doInputClear = true;
-      }, 100);
+      }, 500);
     }
   }
 }

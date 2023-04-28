@@ -17,7 +17,7 @@
           />
           <SelectWithFilter :key="cliNameSelectKeyToReRender"
             id="cliNameSelect" 
-            ref='cliNameSelect'
+            ref="cliNameSelect"
             class="pselect cliNameSelect"
             colorClass="pink3"
             name="cliname"
@@ -92,12 +92,14 @@
             class="plabel leftLabel"
             useRequiredChar
           />
-          <SelectWithFilter id="sizeSelect" :key="sizeSelectKeyToReRender"
-            ref='sizeSelect'
+          <SelectWithFilter :key="sizeSelectKeyToReRender"
+            id="sizeSelect"
+            ref="sizeSelect"
             class="pselect sizeSelect"
             colorClass="pink3"
             name="size"
             :items="this.sizeSelectItems"
+            @optClicked="() => this.updateProductQuantityPrice()"
           />
         </div>
 
@@ -105,14 +107,17 @@
           <LabelC for="colorSelect"
             labelText="Cores"
             class="plabel"
+            useRequiredChar
           />
-          <SelectWithFilter id="colorSelect" :key="colorSelectKeyToReRender"
-            ref='colorSelect'
+          <SelectWithFilter :key="colorSelectKeyToReRender"
+            id="colorSelect" 
+            ref="colorSelect"
             class="pselect colorSelect"
             colorClass="pink3"
             name="color"
             :inputDisabled="this.colorSelectItems.length == 0"
             :items="this.colorSelectItems"
+            @optClicked="() => this.updateProductQuantityPrice()"
           />
         </div>
 
@@ -120,14 +125,17 @@
           <LabelC for="othersSelect"
             labelText="Outros"
             class="plabel"
+            useRequiredChar
           />
-          <SelectWithFilter id="othersSelect" :key="othersSelectKeyToReRender"
-            ref='othersSelect'
+          <SelectWithFilter :key="othersSelectKeyToReRender"
+            id="othersSelect" 
+            ref="othersSelect"
             class="pselect othersSelect"
             colorClass="pink3"
             name="others"
             :inputDisabled="this.othersSelectItems.length == 0"
             :items="this.othersSelectItems"
+            @optClicked="() => this.updateProductQuantityPrice()"
           />
         </div>
       </div>
@@ -137,14 +145,17 @@
           <LabelC for="quantitySelect"
             labelText="Quantidade"
             class="plabel leftLabel"
+            useRequiredChar
           />
-          <SelectWithFilter id="quantitySelect"
-            ref='quantitySelect'
+          <SelectWithFilter :key="quantitySelectKeyToReRender"
+            id="quantitySelect"
+            ref="quantitySelect"
             class="pselect quantitySelect"
             colorClass="pink3"
             name="quantity"
+            :inputDisabled="this.quantityDisabled"
             :items="this.quantitySelectItems"
-            :initialOptValue="1"
+            :initialOptValue="0"
           />
         </div>
 
@@ -152,13 +163,27 @@
           <LabelC for="priceInput"
             labelText="Preço"
             class="plabel"
+            useRequiredChar
           />
           <InputC id="priceInput"
             ref="priceInput"
             class="pinput priceInput"
             type='text'
             name="price"
+            :disabled="this.quantityDisabled"
             :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
+          />
+        </div>
+
+        <div class="row4Right">
+          <ButtonC id="addProductButton"
+            colorClass="pink3"
+            class="btnP"
+            label="Adicionar"
+            width="60%"
+            padding="3px 0px"
+            :disabled="this.quantityDisabled"
+            @click="this.addProduct()"
           />
         </div>
       </div>
@@ -166,7 +191,7 @@
 
     <div class="pageSection">
 
-      <div class="pageProductSection">
+      <div class="pageProductSection" v-show="this.tableProductsData['content'].length > 0">
         
         <TextC colorClass="black1" fontSize='var(--text-title)'>
           Produtos
@@ -179,8 +204,7 @@
               ref="tableProducts"
               class="tableProducts"
               :tableData="this.tableProductsData"
-              @optClicked="(optValue, rowN, colN) => this.changeContactType(optValue, rowN)"
-              @reject="(rowN, colN) => this.cleanContactR(rowN)"
+              @reject="(rowN, colN) => this.removeProductFromTable(rowN)"
             />
           </div>
         
@@ -200,7 +224,7 @@
               ref="tableSale"
               class="tableSale"
               :tableData="this.tableSaleData"
-              @reject="(rowN, colN) => this.cleanChildrenR(rowN)"
+              @optClicked="(optValue, rowN, colN) => this.updateSaleTable(optValue, rowN, colN)"
             />
           </div>
           
@@ -209,14 +233,14 @@
     </div>
 
     <div class="buttonsWrapper">
-      <div class="buttonSaveWrapper">
+      <div class="buttonCreateSaleWrapper">
         <ButtonC colorClass="pink3"
-          id="btnsaveButton"
+          id="createSaleButton"
           class="btnP"
           label="Salvar"
           width="100%"
           padding="3px 0px"
-          @click="this.save()"
+          @click="this.createSale()"
         />
       </div>
 
@@ -246,6 +270,7 @@ import Requests from '../js/requests.js'
 import SelectWithFilter from '../components/SelectWithFilter.vue'
 import TablePink from '../components/TablePink.vue'
 import TextC from '../components/TextC.vue'
+import Utils from '../js/utils'
 
 export default {
   
@@ -284,10 +309,18 @@ export default {
         'content': []
       },
       tableSaleData: {
-        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento' ],
-        'colTypes': [ 'string', 'input', 'input', 'string', 'string', 'input' ],
-        'colWidths': [ '15%', '15%', '15%', '15%', '15%', '25%' ],
-        'content': []
+        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento', 'Parcelas' ],
+        'colTypes': [ 'string', 'select', 'string', 'string', 'string', 'select', 'select' ],
+        'colWidths': [ '15%', '13%', '12%', '15%', '15%', '20%', '10%' ],
+        'content': [[
+          '---',
+          { 'initialOptValue': "0", 'items': [{ label: '0%', value: 0 }, { label: '5%', value: 0.05 }, { label: '10%', value: 0.10 }, { label: '15%', value: 0.15 }] },
+          'R$ 00,0',
+          'R$ 00,0',
+          'R$ 00,0',
+          { 'initialOptValue': "0", 'items': [{ label: '---', value: '0' }] },
+          { 'initialOptValue': "0", 'items': [{ label: '---', value: '0' }] }
+        ]]
       },
 
       cliNameSelectKeyToReRender: 0,
@@ -298,8 +331,13 @@ export default {
       othersSelectKeyToReRender: 5000,
       productkeyToReRender: 6000,
       saleKeyToReRender: 7000,
+      quantitySelectKeyToReRender: 8000,
 
-      loadedInfo: null
+      loadedProdInfo: null,
+      loadedSaleInfo: null,
+      saleCustomizedProducts: {},
+      actualCustomizedProducts: null,
+      quantityDisabled: true
     }
   },
 
@@ -325,16 +363,28 @@ export default {
     vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
 
     if(vreturn && vreturn['ok'] && vreturn['response']){
-      this.loadedInfo = vreturn['response'];
-      console.log(this.loadedInfo);
+      this.loadedProdInfo = vreturn['response'];
 
-      this.nameSelectItems = this.loadedInfo['products'].map(x => ({'label': x['product_name'], 'value': x['product_id']}));
-      this.codeSelectItems = this.loadedInfo['products'].map(x => ({'label': x['product_code'], 'value': x['product_id']}));
+      this.nameSelectItems = this.loadedProdInfo['products'].map(x => ({'label': x['product_name'], 'value': x['product_id']}));
+      this.codeSelectItems = this.loadedProdInfo['products'].map(x => ({'label': x['product_code'], 'value': x['product_id']}));
     }
     else{
-      this.$root.renderRequestErrorMsg(vreturn, ['Produto não encontrado']);
+      this.$root.renderRequestErrorMsg(vreturn, []);
       this.$root.renderView('home');
     }
+
+    // sale
+    vreturn = await this.$root.doRequest( Requests.getSaleInfo, [] );
+
+    if(vreturn && vreturn['ok'] && vreturn['response']){
+      this.loadedSaleInfo = vreturn['response'];
+    }
+    else{
+      this.$root.renderRequestErrorMsg(vreturn, []);
+      this.$root.renderView('home');
+    }
+    this.loadSaleTablePaymentMethods();
+    this.updateSaleTable();
   },
 
   methods:{
@@ -365,12 +415,16 @@ export default {
         this.colorSelectItems = [];
         this.othersSelectItems = [];
         
+        // used at save to parse product data
+        this.saleCustomizedProducts[vreturn['response']['product_code']] = vreturn['response'];
+
         // foreach personalized info
-        vreturn['response']['customized_products'].forEach(perInfo => {
+        this.actualCustomizedProducts = vreturn['response']['customized_products'];
+        this.actualCustomizedProducts.forEach(perInfo => {
           
           // includes only once each size attribute
           if(!tmpSizeItems.includes(perInfo['product_size_name'])){
-            let sizeObject = this.loadedInfo['sizes'].find(x => x['product_size_name'] == perInfo['product_size_name']);
+            let sizeObject = this.loadedProdInfo['sizes'].find(x => x['product_size_name'] == perInfo['product_size_name']);
             
             tmpSizeItems.push(sizeObject['product_size_name']);
             this.sizeSelectItems.push({
@@ -382,7 +436,7 @@ export default {
 
           // includes only once each color attribute
           if(perInfo['product_color_name'] && !tmpColorItems.includes(perInfo['product_color_name'])){
-            let colorObject = this.loadedInfo['colors'].find(x => x['product_color_name'] == perInfo['product_color_name']);
+            let colorObject = this.loadedProdInfo['colors'].find(x => x['product_color_name'] == perInfo['product_color_name']);
 
             tmpColorItems.push(colorObject['product_color_name']);
             this.colorSelectItems.push({
@@ -394,7 +448,7 @@ export default {
 
           // includes only once each other attribute
           if(perInfo['product_other_name'] && !tmpOthersItems.includes(perInfo['product_other_name'])){
-            let otherObject = this.loadedInfo['others'].find(x => x['product_other_name'] == perInfo['product_other_name']);
+            let otherObject = this.loadedProdInfo['others'].find(x => x['product_other_name'] == perInfo['product_other_name']);
 
             tmpOthersItems.push(otherObject['product_other_name']);
             this.othersSelectItems.push({
@@ -414,257 +468,331 @@ export default {
         this.$root.renderRequestErrorMsg(vreturn, []);
         this.$root.renderView('home');
       }
+      this.resetProductQuantityPrice();
     },
+    // update quantity and price fields
+    updateProductQuantityPrice(){
+      let sizeLabel = this.$refs['sizeSelect'].getL();
+      let colorLabel = this.$refs['colorSelect'].getL();
+      let otherLabel = this.$refs['othersSelect'].getL();
+      this.quantityDisabled = true;
 
-    addContact(){
-      this.tableContactItems['content'].push(this.getContactArr());
-    },
-    getContactArr(type="W", value=''){
-
-      switch(type){
-        
-        case "W":
-          return [
-            { 'initialOptValue': "W", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'mask': ['(##) ####-####', '(##) #####-####'], 'value': value},
-            { 'showAccept': false, 'showReject': true }
-          ];
-
-        case "T":
-          return [
-            { 'initialOptValue': "T", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'maxlength': '50', 'value': value },
-            { 'showAccept': false, 'showReject': true }
-          ];
-
-        case "I":
-          return [
-            { 'initialOptValue': "I", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'maxlength': '50', 'value': value},
-            { 'showAccept': false, 'showReject': true }
-          ];
-
-        case "E":
-          return [
-            { 'initialOptValue': "E", 'items': [{ label: 'WhatsApp', value: 'W' }, { label: 'TikTok', value: 'T' }, { label: 'Instagram', value: 'I' }, { label: 'Email', value: 'E' }] },
-            { 'type': 'text', 'maxlength': '50', 'value': value},
-            { 'showAccept': false, 'showReject': true }
-          ];
+      console.log(this.actualCustomizedProducts);
+      // checks size
+      if(this.sizeSelectItems && this.sizeSelectItems.length > 0 && (sizeLabel == null || sizeLabel == undefined)){
+        this.quantitySelectItems = [{ 'label': 'Campo tamanho vazio', 'value': 0 }];
       }
-    },
-    changeContactType(optValue, row){
-
-      let tableContactsV = this.$refs.tableContacts.getV();
-
-      this.tableContactItems['content'] = [];
-      tableContactsV.forEach((tableContactV, cIndex) => {
-        this.tableContactItems['content'].push(this.getContactArr( (cIndex != row ? tableContactV[0] : optValue) , (cIndex != row ? tableContactV[1] : '') ));
-      });
-
-      // forces component to rerender to resolve not updating issues
-      this.contactkeyToReRender = this.contactkeyToReRender + 1;
-    },
-    cleanContactR(row){
-
-      let tableContactsV = this.$refs.tableContacts.getV();
-      
-      this.tableContactItems['content'] = [];
-      tableContactsV.forEach((tableContactV, cIndex) => {
-        if(cIndex != row){
-          this.tableContactItems['content'].push(this.getContactArr(tableContactV[0], tableContactV[1]));
-        }
-      });
-      
-      // forces component to rerender to resolve not updating issues
-      this.contactkeyToReRender = this.contactkeyToReRender + 1;
-    },
-
-    addChildren(){
-      this.tableChildrenItems['content'].push(this.getChildrenArr());
-    },
-    getChildrenArr(nameValue='', dateValue='',sizeValue=1){
-      
-      return [
-        { 'type': 'text', 'maxlength': '50', 'onlyLetters': true, 'placeholder': '---', 'value': nameValue },
-        { 'type': 'date', 'value': dateValue },
-        { 'initialOptValue': sizeValue, 'items': [ 
-          { label: '32', value: 1 },
-          { label: '34', value: 2 },
-          { label: '36', value: 3 },
-          { label: '38', value: 4 },
-          { label: '40', value: 5 },
-          { label: '42', value: 6 }
-        ]},
-        { 'showAccept': false, 'showReject': true } ]
-    },
-    cleanChildrenR(row){
-
-      let tableChildrenV = this.$refs.tableChildren.getV();
-      
-      this.tableChildrenItems['content'] = [];
-      tableChildrenV.forEach((tableChildV, cIndex) => {
-        if(cIndex != row){
-          this.tableChildrenItems['content'].push(this.getChildrenArr(tableChildV[0], tableChildV[1], tableChildV[2]));
-        }
-      });
-      
-      // forces component to rerender to resolve not updating issues
-      this.childrenKeyToReRender = this.childrenKeyToReRender + 1;
-    },
-    async save(){
-      
-      let tableContactsV = this.$refs.tableContacts.getV()
-      let tableChildrenV = this.$refs.tableChildren.getV()
-      
-      let nameV = this.$refs.nameInput.getV();
-      let birthV = this.$refs.birthInput.getV();
-      let cpfV = this.$refs.cpfInput.getV().replaceAll(/\.|\-/g, '');
-      let genderV = this.$refs.genderSelect.getV();
-      let cepV = this.$refs.cepInput.getV().replaceAll(/\-/g, '');
-      let adressV = this.$refs.adressInput.getV();
-      let cityV = this.$refs.cityInput.getV();
-      let neighborhoodV = this.$refs.neighborhoodInput.getV();
-      let stateV = this.$refs.stateSelect.getV();
-      let numberV = this.$refs.houseNumberInput.getV();
-      let complementV = this.$refs.complementInput.getV();
-      let contactsV = [];
-      let childrenV = [];
-
-      let curDate = new Date();
-      let minDateMs = new Date().setFullYear( curDate.getFullYear() - 100 );
-      let maxDateMs = new Date().setFullYear( curDate.getFullYear() - 10 );
-      let maxDateChildMs = new Date().setFullYear( curDate.getFullYear() - 5 );
-
-      if(nameV.length < 5 || nameV.length > 50){
-        this.$root.renderMsg('warn', 'Nome inválido!', 'Necessário de 5 a 50 caracteres com um sobrenome no mínimo.');
-        return;
+      // checks color
+      else if(this.colorSelectItems && this.colorSelectItems.length > 0 && (colorLabel == null || colorLabel == undefined)){
+        this.quantitySelectItems = [{ 'label': 'Campo cor vazio', 'value': 0 }];
       }
-
-      if(birthV != null && birthV != ''){
-
-        let clientBirthVMs = new Date(birthV).getTime();
-
-        if(minDateMs > clientBirthVMs || clientBirthVMs > maxDateMs){
-          this.$root.renderMsg('warn', 'Data de Nascimento do cliente inválida!',
-            'A data deve estar no formato dd/mm/aaaa e estar no intervalo de 10 a 100 anos anteriores, O campo é opcional e deve estar completo ou sem nenhum valor');
-          return;
-        }
+      // checks other
+      else if(this.othersSelectItems && this.othersSelectItems.length > 0 && (otherLabel == null || otherLabel == undefined)){
+        this.quantitySelectItems = [{ 'label': 'Campo outro vazio', 'value': 0 }];
       }
-
-      if(cpfV.length > 0 && cpfV.length != 11){
-        this.$root.renderMsg('warn', 'Cpf inválido!', 'O campo é opcional e deve estar completo ou sem nenhum valor');
-        return;
-      }
-
-      if(cepV.length > 0 && cepV.length != 8){
-        this.$root.renderMsg('warn', 'Cep inválido!', 'O campo é opcional e deve estar completo ou sem nenhum valor');
-        return;
-      }
-
-      if(tableContactsV.length == 0){
-        this.$root.renderMsg('warn', 'Contato inválido!', 'É obrigatório a adição de pelo menos o número de whatsapp como contato do cliente.');
-        return;
-      }
+      // set quantity and price searching in actualCustomizedProducts
       else{
-        let foundWhats = false;
-        for(let i = 0; i < tableContactsV.length; i++){
-          if(tableContactsV[i] && tableContactsV[i][0] == 'W' && tableContactsV[i][1].length > 0){
-            foundWhats = true;
-            break;
+        let foundCP = false;
+        for(let i = 0; i < this.actualCustomizedProducts.length; i++){
+          if(this.actualCustomizedProducts[i]['product_size_name'] == sizeLabel && 
+            this.actualCustomizedProducts[i]['product_color_name'] == colorLabel && 
+            this.actualCustomizedProducts[i]['product_other_name'] == otherLabel){
+            
+            foundCP = true;
+            console.log(this.actualCustomizedProducts[i]);
+
+            if(this.actualCustomizedProducts[i]['product_quantity'] <= 0){
+              this.quantitySelectItems = [{ 'label': 'Variação sem estoque', 'value': 0 }];
+            }
+            else{
+              // quantity
+              this.quantitySelectItems = [];
+              for (let j = 1; j <= this.actualCustomizedProducts[i]['product_quantity']; j++) {
+                this.quantitySelectItems.push({ 'label': j.toString(), 'value': j });
+                console.log(this.quantitySelectItems);
+              };
+              this.quantityDisabled = false;
+              
+
+              // price
+              this.$refs['priceInput'].setV(Utils.getCurrencyFormat(this.actualCustomizedProducts[i]['product_price']));
+            }
           }
         }
-        if(!foundWhats){
-          this.$root.renderMsg('warn', 'Contato inválido!', 'É obrigatório a adição de pelo menos o número de whatsapp como contato do cliente.');
-          return;
+        if(!foundCP){
+          this.quantitySelectItems = [{ 'label': 'Variação não encontrada', 'value': 0 }];
+        }
+      }
+      this.quantitySelectKeyToReRender++;
+    },
+    resetProductQuantityPrice(){
+      this.quantitySelectItems = [];
+      this.quantityDisabled = true;
+      this.quantitySelectKeyToReRender++;
+      this.$refs['priceInput'].setV('');
+    },
+    addProduct(){
+      let nameObj = this.$refs['nameSelect'].getObj();
+      let codeObj = this.$refs['codeSelect'].getObj();
+      let sizeObj = this.$refs['sizeSelect'].getObj();
+      let colorObj = this.$refs['colorSelect'].getObj();
+      let otherObj = this.$refs['othersSelect'].getObj();
+      let quantityObj = this.$refs['quantitySelect'].getObj();
+      let price = this.$refs['priceInput'].getV();
+
+      if(!quantityObj || !quantityObj['value'] || quantityObj['value'] <= 0){
+        this.$root.renderMsg('warn', 'Quantidade inválida!', 'Quantidade deve ser maior que 0');
+        return;
+      }
+      if(!price || Utils.getNumberFormatFromCurrency(price) <= 0){
+        this.$root.renderMsg('warn', 'Preço inválido!', 'Preço deve ser maior que 0');
+        return;
+      }
+
+      this.addProductToTable(
+        nameObj['label'], codeObj['label'], sizeObj['label'], (colorObj ? colorObj['label'] : ''), 
+        (otherObj ? otherObj['label'] : ''), quantityObj['label'], price);
+    },
+    addProductToTable(name, code, size, color, other, quantity, price){
+
+      // updates if has duplicants
+      let foundDuplicate = false;
+      for(let i = 0; i < this.tableProductsData['content'].length; i++){
+        let content = this.tableProductsData['content'][i];
+        
+        if(content[0] == code && 
+          content[1] == name && 
+          content[2] == size && 
+          content[3] == color && 
+          content[4] == other
+        ){
+          foundDuplicate = true;
+          this.tableProductsData['content'][i][5] = price;
+          this.tableProductsData['content'][i][6] = quantity;
+          this.$root.renderMsg('warn', 'Variação adicionada duplicada!', 'Quantidade e preço foram substituídos pelos valores novos');
         }
       }
 
-      for(let i = 0; i < tableContactsV.length; i++){
-        let contact = tableContactsV[i];
-
-        switch(contact[0]){
-          case 'W':
-            if(contact[1].length >= 0 && contact[1].length < 10){
-              this.$root.renderMsg('warn', 'WhatsApp inválido!', 'O contado da posição ' + (i+1) + ' está preenchido parcialmente.');
-              return;
-            }
-            contactsV.push({ "contact_type": "W", "contact_value": contact[1] });
-            break;
-          case 'T':
-            if(contact[1].length <= 0 || contact[1].length > 50){
-              this.$root.renderMsg('warn', 'TikTok inválido!', 'O contado tiktok da posição ' + (i+1) + ' deve possuir de 1 a 50 caracteres.');
-              return;
-            }
-            contactsV.push({ "contact_type": "T", "contact_value": contact[1] });
-            break;
-          case 'I':
-            if(!/^\S*$/.test(contact[1])){
-              this.$root.renderMsg('warn', 'Conta do instagram inválida!', 'O nome da conta do instagram na posição ' + (i+1) + ' não pode conter espaços.');
-              return;
-            }
-            contactsV.push({ "contact_type": "I", "contact_value": contact[1] });
-            break;
-          case 'E':
-            if(!contact[1].match(/.+@.+/) || !/^\S*$/.test(contact[1])){
-              this.$root.renderMsg('warn', 'Email inválido!', 'O email na posição ' + (i+1) + ' deve conter @ e não conter espaços.');
-              return;
-            }
-            contactsV.push({ "contact_type": "E", "contact_value": contact[1] });
-            break;
-        }
+      // add and sort products if not has duplicants
+      if(!foundDuplicate){
+        this.tableProductsData['content'].push([
+          code, name, size, color, other, price, quantity, { 'showAccept': false, 'showReject': true }
+        ]);
+        this.tableProductsData['content'].sort(function(x, y){
+          if(x[0] != y[0]){ return x[0].localeCompare(y[0]); }
+          if(x[2] != y[2]){ return x[2].localeCompare(y[2]); }
+          if(x[3] != y[3]){ return x[3].localeCompare(y[3]); } 
+          return x[4].localeCompare(y[4]);
+        })
       }
+
+      // rerender product table and updates sale table
+      this.productkeyToReRender++;
+      this.updateSaleTable();
+    },
+    removeProductFromTable(rowN){
+      // remove item, rerender product table and updates sale table
+      this.tableProductsData['content'].splice(rowN, 1);
+      this.productkeyToReRender++;
+      this.updateSaleTable();
+    },
+    loadSaleTablePaymentMethods(){
+      let saleRow = this.tableSaleData['content'][0];
+      let paymentMethods = [];
+      // set paymentMethods without duplicants in list
+      this.loadedSaleInfo['payment_methods'].forEach((payment) => {
+        if(!paymentMethods.includes(payment['payment_method_name'])){
+          paymentMethods.push(payment['payment_method_name']);
+        }
+      });
+      // use list to create SaleTable select object
+      saleRow[5] = { 'initialOptValue': paymentMethods[0], 'items': [] };
+      paymentMethods.forEach((paymentName) => {
+        saleRow[5]['items'].push({ label: paymentName, value: paymentName });
+      });
+      // set installments
+      saleRow[6] = { 'initialOptValue': 1, 'items': [] };
+      this.loadedSaleInfo['payment_methods'].forEach((payment) => {
+        if(payment['payment_method_name'] == paymentMethods[0]){
+          saleRow[6]['items'].push({ label: payment['payment_method_Installment_number'], value: payment['payment_method_Installment_number'] });
+        }
+      });
+    },
+    updateSaleTable(optValue = null, rowN = null, colN = null){
+      let saleRow = this.tableSaleData['content'][0];
+ 
+      // calculates total sale raw value
+      let totalSaleRawValue = 0;
+      let totalSaleValue = 0;
+      for(let i = 0; i < this.tableProductsData['content'].length; i++){
+        let content = this.tableProductsData['content'][i];
+        totalSaleRawValue += Utils.getNumberFormatFromCurrency(content[5]) * Number(content[6]);
+      }
+
+      saleRow[0] = `VENDA-${this.loadedSaleInfo['last_sale_id']}`;
+      // changes in discount select
+      if(colN == 1){
+        saleRow[1]['initialOptValue'] = optValue;
+      }
+      saleRow[2] = Utils.getCurrencyFormat(totalSaleRawValue*this.$refs.tableSale.getV(0, 1));
+      saleRow[3] = Utils.getCurrencyFormat(totalSaleRawValue);
+      totalSaleValue = totalSaleRawValue*(1-this.$refs.tableSale.getV(0, 1));
+      saleRow[4] = Utils.getCurrencyFormat(totalSaleValue);
+      // changes payment method and set new installments
+      if(colN == 5){
+        saleRow[5]['initialOptValue'] = optValue;
+        saleRow[6] = { 'initialOptValue': 1, 'items': [] };
+        this.loadedSaleInfo['payment_methods'].forEach((payment) => {
+          if(payment['payment_method_name'] == saleRow[5]['initialOptValue']){
+            saleRow[6]['items'].push({ label: payment['payment_method_Installment_number'], value: payment['payment_method_Installment_number'] });
+          }
+        });
+      }
+      // changes installment
+      if(colN == 6){
+        saleRow[6]['initialOptValue'] = optValue;
+      }
+      // sets installment labels
+      let installmentTmp = [];
+      saleRow[6]['items'].forEach((x) => {
+        installmentTmp.push({
+          'label': `${x['value']} x ${Utils.getCurrencyFormat(totalSaleValue/Number(x['value']))}`,
+          'value': x['value']
+        });
+      });
+      saleRow[6]['items'] = installmentTmp;
+
+      this.saleKeyToReRender++;
+    },
+
+    async createSale(){
       
-      for(let i = 0; i < tableChildrenV.length; i++){
-        let child = tableChildrenV[i];
+      let saleRow = this.tableSaleData['content'][0];
+      let productsData = this.tableProductsData['content'];
 
-        if(child[0].length < 3){
-          this.$root.renderMsg('warn', 'Nome inválido!', 'O nome do filho na posição ' + (i+1) + ' deve conter no mínimo 3 letras.');
-          return;
-        }
-        
-        if(child[1]){
-          let childBirthVMs = new Date(child[1]).getTime();
+      let clientId = this.$refs.cliNameSelect.getV();
+      let employeeId = this.$root.userLoggedData['id'];
+      let methodInstallmentId = this.loadedSaleInfo['payment_methods'].find(payment => 
+        payment['payment_method_name'] == this.$refs.tableSale.getV(0, 5) && payment['payment_method_Installment_number'] == this.$refs.tableSale.getV(0, 6)
+      )['payment_method_installment_id'];
+      let discountPercentage = this.$refs.tableSale.getV(0, 1);
+      let totalValue = Utils.getNumberFormatFromCurrency(this.$refs.tableSale.getV(0, 4));
 
-          if(minDateMs > childBirthVMs || childBirthVMs > maxDateChildMs){
-            this.$root.renderMsg('warn', 'Data de Nascimento do filho ' + (i+1) + ' inválida!',
-              'A data deve estar no formato dd/mm/aaaa e estar no intervalo de 5 a 100 anos anteriores, O campo é opcional');
-            return;
+      if(clientId == null || clientId == undefined){
+        this.$root.renderMsg('warn', 'Cliente inválido!', 'É preciso selecionar o cliente');
+        return;
+      }
+      if(employeeId == null || employeeId == undefined){
+        this.$root.renderMsg('warn', 'Funcionário inválido!', 'Este erro não deveria ocorrer, contatar suporte técnico');
+        return;
+      }
+      if(methodInstallmentId == null || methodInstallmentId == undefined){
+        this.$root.renderMsg('warn', 'Forma de pagamento inválida!', 'Este erro não deveria ocorrer, contatar suporte técnico');
+        return;
+      }
+      if(discountPercentage == null || discountPercentage == undefined){
+        this.$root.renderMsg('warn', 'Percentual de disconto inválido!', 'Este erro não deveria ocorrer, contatar suporte técnico');
+        return;
+      }
+      if(totalValue == 0 || productsData.length == 0){
+        this.$root.renderMsg('warn', 'Valor da venda inválido!', 'Favor incluir pelo menos um produto e certificar que a venda não vale R$ 0,00');
+        return;
+      }
+
+      let saleHasProducts = [];
+      let saleProductsTmp = {};
+      // get product data from saleCustomizedProducts by code as key and find personalized product
+      productsData.forEach((productFromTable) => {
+
+        let productData = this.saleCustomizedProducts[productFromTable[0]];
+        let productId = productData['product_id'];
+        for(let i = 0; i < productData['customized_products'].length; i++){
+          let customProductData = productData['customized_products'][i];
+
+          if(
+            productFromTable[2] == customProductData['product_size_name'] &&
+            productFromTable[3] == (customProductData['product_color_name'] ? customProductData['product_color_name'] : '') &&
+            productFromTable[4] == (customProductData['product_other_name'] ? customProductData['product_other_name'] : '')
+          ){
+            if(!saleProductsTmp[productId]){
+              saleProductsTmp[productId] = {};
+            }
+            saleProductsTmp[productId][customProductData['customized_product_id']] = {
+              'customized_product_id': customProductData['customized_product_id'],
+              'customized_product_price': Utils.getNumberFormatFromCurrency(productFromTable[5]),
+              'customized_product_sale_quantity': Number(productFromTable[6])
+            }
           }
         }
-        
-        childrenV.push({ "children_name": child[0], "children_birth_date": child[1], "children_product_size_id": child[2] });
-      };
+      });
+
+      // converts to api format
+      Object.keys(saleProductsTmp).forEach((productId) => {
+
+        let customizedProducts = [];
+        Object.keys(saleProductsTmp[productId]).forEach((customProductId) => {
+          customizedProducts.push(saleProductsTmp[productId][customProductId]);
+        });
+
+        saleHasProducts.push({
+          'product_id': productId,
+          'customized_products': customizedProducts
+        });
+
+      });
 
       let vreturn = await this.$root.doRequest(
-        Requests.createClient,
-        [nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV]
+        Requests.createSale,
+        [clientId, employeeId, methodInstallmentId, discountPercentage, totalValue, saleHasProducts]
       );
 
       if(vreturn && vreturn['ok']){
         let self = this;
-        this.$root.renderMsg('ok', 'Sucesso!', 'Cliente cadastrado.', function () { self.$router.go(); });
+        this.$root.renderMsg('ok', 'Sucesso!', 'Venda cadastrada.', function () { self.$router.go(); });
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, ['Nome já utilizado!', 'Cliente não econtrado!', 'Cpf já utilizado!', 
-          'Um dos contatos associados não possui o tipo', 'Um dos contatos associados está sem o valor', 'Uma das crianças associadas não possui o nome', 
-          'Uma das crianças associadas não possui o aniversário', 'Uma das crianças associadas não possui o tamanho de produtos']);
+        this.$root.renderRequestErrorMsg(vreturn, [
+          'O cliente associado à venda não existe no sistema',
+          'O funcionario associado à venda não existe no sistema',
+          'O funcionario associado à venda não esta habilitado no sistema',
+          'A forma de pagamento associado à venda não existe no sistema',
+          'O desconto na venda não pode ser menor que 0',
+          'O desconto na venda não pode ser maior ou igual a 100',
+          'A venda deve possuir pelo menos um produto associado',
+          'Um dos produtos associados foi enviado sem o product_id',
+          'Um dos produtos associados não foi encontrado no sistema',
+          'Um dos produtos associados está inativo',
+          'Um dos produtos associados foi enviado sem produtos customizados',
+          'Um dos produtos customizaveis associados foi enviado sem o campo customized_product_id',
+          'Um dos produtos customizaveis associados foi enviado sem o campo customized_product_sale_quantity',
+          'Um dos produtos associados possui quantidade de produtos a venda 0 ou menor',
+          'Um dos produtos customizaveis associados não foi encontrado no sistema',
+          'Um dos produtos customizaveis associados está inativo',
+          'Um dos produtos customizaveis associados está com quantidade maior de vendas que o estoque disponível',
+          'Preço esperado diferente do preço calculado no sistema'
+        ]);
       }
     },
     cleanFields(){
 
-      this.$refs.nameInput.setV('');
-      this.$refs.birthInput.setV('');
-      this.$refs.cpfInput.setV('');
-      this.$refs.genderSelect.setV('');
-      this.$refs.cepInput.setV('');
-      this.$refs.adressInput.setV('');
-      this.$refs.cityInput.setV('');
-      this.$refs.neighborhoodInput.setV('');
-      this.$refs.stateSelect.setV('');
-      this.$refs.houseNumberInput.setV('');
-      this.$refs.complementInput.setV('');
-      this.tableContactItems['content'] = [];
-      this.tableChildrenItems['content'] = [];
+      this.$refs.cliNameSelect.setV('');
+      this.$refs.cliCpfInput.setV('');
+      this.$refs.nameSelect.setV('');
+      this.$refs.codeSelect.setV('');
+      this.$refs.sizeSelect.setV('');
+      this.$refs.colorSelect.setV('');
+      this.$refs.othersSelect.setV('');
+      this.$refs.quantitySelect.setV('');
+      this.$refs.priceInput.setV('');
+      
+      this.tableProductsData['content'] = [];
+      this.productkeyToReRender++;
+
+      this.resetProductQuantityPrice();
+      this.updateSaleTable();
+
+      this.saleCustomizedProducts = {};
+      this.actualCustomizedProducts = null;
     }
   }
 }
@@ -685,7 +813,7 @@ export default {
   .pageSectionRow{
     margin: 10px 20px;
   }
-  .row1Left, .row2Left, .row1Right, .row2Right, .row3Left, .row3Center, .row3Right, .row4Left, .row4Center{
+  .row1Left,  .row1Right, .row2Left, .row2Right, .row3Left, .row3Center, .row3Right, .row4Left, .row4Center, .row4Right{
     display: inline-block;
   }
   .row1Left, .row2Left, .row3Left, .row4Left{
@@ -701,10 +829,10 @@ export default {
     text-align: right;
     width: 30%;
   }
-  .row1Right, .row2Right, .row3Right{
+  .row1Right, .row2Right, .row3Right, .row4Right{
     text-align: right;
   }
-  .row1Right, .row2Right, .row3Right{
+  .row1Right, .row2Right, .row3Right, .row4Right{
     width: 40%;
   }
   .plabel{
@@ -713,15 +841,15 @@ export default {
     text-align: right;
   }
   .leftLabel{
-    width: 95px;
+    width: 115px;
   }
-  .cliNameSelect, .nameSelect{
+  .cliNameSelect, .nameSelect, .quantitySelect{
     width: 60%;
   }
   .cliCpfInput, .codeSelect{
     width: 50%;
   }
-  .sizeSelect, .quantitySelect{
+  .sizeSelect{
     width: 40%;
   }
   .colorSelect, .othersSelect, .priceInput{
@@ -737,7 +865,7 @@ export default {
     text-align: left;
     width: 100%;
   }
-  .buttonSaveWrapper, .buttonCleanWrapper{
+  .buttonCreateSaleWrapper, .buttonCleanWrapper{
     width: 20%;
     display: inline-block;
     margin-left: 20px;
@@ -763,9 +891,13 @@ export default {
     text-align: center;
     width: 100%;
   }
-  .buttonSaveWrapper, .buttonCleanWrapper{
+  .buttonCreateSaleWrapper, .buttonCleanWrapper{
     width: 80%;
     display: inline-block;
+    margin: 10px;
+    text-align: center;
+  }
+  .row4Right{
     margin: 10px;
     text-align: center;
   }

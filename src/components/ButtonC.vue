@@ -63,6 +63,9 @@ export default {
 .buttonC:focus, .buttonC:active {
   font-weight: bold;
 }
+.buttonC:disabled{
+  font-weight: normal;
+}
 
 /* color classes */
 .black1{
@@ -90,9 +93,12 @@ export default {
   border-color: var(--color-pink3);
   color: var(--color-black1);
 }
-.pink3:hover{
+.pink3:hover, .pink3:disabled{
   background-color: var(--color-pink2-hover);
   border-color: var(--color-pink3-hover);
+}
+.pink3:disabled{
+  cursor: auto;
 }
 
 </style>
