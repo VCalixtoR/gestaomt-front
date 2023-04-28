@@ -57,11 +57,18 @@ function getDateString(date, dateDelim = '/'){
   }
 }
 
-function getDateTimeString(date, dateDelim = '/', hourDelim = ':'){
+function getDateTimeString(date, dateDelim = '/', hourDelim = ':', avoidTimezone=true){
   
+  if(date == null || date == undefined || date == ''){
+    return null;
+  }
+
   // avoid timezoud adding 3 hours in ms
-  if(typeof date === "string"){
+  if(avoidTimezone && typeof date === "string"){
     date = new Date(Date.parse(date)+10800000);
+  }
+  else if(typeof date === "string"){
+    date = new Date(Date.parse(date));
   }
 
   if(date instanceof Date){
@@ -85,6 +92,9 @@ function getCurrencyFormat(number){
 }
 
 function getNumberFormatFromCurrency(currency){
+  if(currency == null || currency == undefined || currency == ''){
+    return null;
+  }
   return Number(currency.replace(/[^\d,]+/g, '').replace(',', '.'));
 }
 

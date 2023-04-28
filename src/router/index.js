@@ -10,6 +10,7 @@ import LoginView from '../views/LoginView.vue'
 import ProductCreView from '../views/ProductCreView.vue'
 import ProductVisView from '../views/ProductVisView.vue'
 import SaleCreView from '../views/SaleCreView.vue'
+import SaleVisView from '../views/SaleVisView.vue'
 import SignView from '../views/SignView.vue'
 
 const routes = [
@@ -57,6 +58,11 @@ const routes = [
     path: '/cadastrarvenda',
     name: 'cadastrarvenda',
     component: SaleCreView
+  },
+  {
+    path: '/vervenda',
+    name: 'vervenda',
+    component: SaleVisView
   },
   {
     path: '/admin/funcionarios',

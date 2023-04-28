@@ -57,7 +57,7 @@ function parseQueryStrFromObj(queryObj){
   let started = false;
 
   keyList.forEach((key, index) => {
-    if(queryObj[key]!=null && queryObj[key]!=undefined){
+    if(queryObj[key]!==null && queryObj[key]!==undefined && queryObj[key]!==''){
       if(started){
         queryString += `&${key}=${queryObj[key]}`
       }
@@ -559,6 +559,32 @@ async function createSale(token_jwt, args){
   return vreturn;
 }
 
+async function getSales(token_jwt, args){
+
+  let myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let querystring = parseQueryStrFromObj({
+    'limit': args[0],
+    'offset': args[1],
+    'sale_id': args[2],
+    'sale_client_name': args[3],
+    'sale_creation_date_time_start': args[4],
+    'sale_creation_date_time_end': args[5],
+    'sale_status': args[6],
+    'sale_total_value_start': args[7],
+    'sale_total_value_end' : args[8]
+  });
+
+  let vreturn = await baseRequestFBody(myHeaders, `sales${querystring}`);
+  return vreturn;
+}
+
 async function getSaleInfo(token_jwt, _){
 
   var myHeaders = {
@@ -619,6 +645,7 @@ export default{
   getProducts,
   getProductInfo,
   createSale,
+  getSales,
   getSaleInfo,
   getEvents
 }

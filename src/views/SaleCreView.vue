@@ -477,7 +477,6 @@ export default {
       let otherLabel = this.$refs['othersSelect'].getL();
       this.quantityDisabled = true;
 
-      console.log(this.actualCustomizedProducts);
       // checks size
       if(this.sizeSelectItems && this.sizeSelectItems.length > 0 && (sizeLabel == null || sizeLabel == undefined)){
         this.quantitySelectItems = [{ 'label': 'Campo tamanho vazio', 'value': 0 }];
@@ -499,7 +498,6 @@ export default {
             this.actualCustomizedProducts[i]['product_other_name'] == otherLabel){
             
             foundCP = true;
-            console.log(this.actualCustomizedProducts[i]);
 
             if(this.actualCustomizedProducts[i]['product_quantity'] <= 0){
               this.quantitySelectItems = [{ 'label': 'Variação sem estoque', 'value': 0 }];
@@ -509,7 +507,6 @@ export default {
               this.quantitySelectItems = [];
               for (let j = 1; j <= this.actualCustomizedProducts[i]['product_quantity']; j++) {
                 this.quantitySelectItems.push({ 'label': j.toString(), 'value': j });
-                console.log(this.quantitySelectItems);
               };
               this.quantityDisabled = false;
               
