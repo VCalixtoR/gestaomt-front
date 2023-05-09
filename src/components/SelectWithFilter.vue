@@ -13,7 +13,7 @@
         'font-size': this.fontSize,
       }">
 
-      <input class="selectBoxInput"
+      <input :class="'selectBoxInput ' + this.colorClass + (this.inputDisabled ? ' disabled' : '')"
         :id="this.id"
         :ref="'input' + this.id"
         :name="this.name"
@@ -283,6 +283,10 @@ export default {
   border-radius: 5px;
   color: var(--color-black2);
 }
+.selectBoxInput{
+  background-color: var(--color-pink1);
+  color: var(--color-black2);
+}
 .selectBox.pink3NoBorder{
   background-color: var(--color-pink1);
   border: none;
@@ -300,7 +304,7 @@ export default {
   background-color: var(--color-pink3);
   color: var(--color-white);
 }
-.selectBox.pink3.disabled, .selectBox.pink3NoBorder.disabled {
+.selectBox.pink3.disabled, .selectBox.pink3NoBorder.disabled, .selectBoxInput.pink3.disabled {
   color: var(--color-gray3);
   background-color: var(--color-pink2);
 }
