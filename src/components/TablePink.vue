@@ -136,6 +136,18 @@
               />
             </div>
 
+            <div v-if="this.tableData['colTypes'][indexC] == 'pdf'" :ref="'tableContent' + indexCR" class="wrapperPdf">
+              <font-awesome-icon v-if="content['showPdf']"
+                class="iconPdf"
+                :icon="['fas', 'file-pdf']"
+                :style="{
+                  'font-size': 'var(--text-small)',
+                  'color': 'var(--color-pink3)'
+                }"
+                @click="$emit('pdf', indexCR, indexC)"
+              />
+            </div>
+
             <div v-if="this.tableData['colTypes'][indexC] == 'acceptReject'"
               :ref="'tableContent' + indexCR"
               class="wrapperAcceptReject">
@@ -255,6 +267,18 @@
                   'color': 'var(--color-pink3)'
                 }"
                 @click="$emit('visualize', indexCR, indexC)"
+              />
+            </div>
+
+            <div v-if="this.tableData['colTypes'][indexC] == 'pdf'" :ref="'tableContent' + indexCR" class="wrapperPdf">
+              <font-awesome-icon v-if="content['showPdf']"
+                class="iconPdf"
+                :icon="['fas', 'file-pdf']"
+                :style="{
+                  'font-size': 'var(--text-small)',
+                  'color': 'var(--color-pink3)'
+                }"
+                @click="$emit('pdf', indexCR, indexC)"
               />
             </div>
 
@@ -519,14 +543,14 @@ export default {
     margin: 0px 10px;
   }
 }
-.wrapperEdit, .wrapperVisualize{
+.wrapperEdit, .wrapperVisualize, .wrapperPdf{
   display: inline-block;
   margin: 0px 10px;
 }
-.iconAcceptReject, .iconPencil, .iconVisualize{
+.iconAcceptReject, .iconPencil, .iconVisualize, .iconPdf{
   cursor: pointer;
 }
-.iconPencil, .iconVisualize{
+.iconPencil, .iconVisualize, .iconPdf{
   display: inline-block;
 }
 .contentBox{

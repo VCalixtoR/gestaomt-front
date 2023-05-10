@@ -130,6 +130,7 @@
           @previousClick="this.previousSalePage()"
           @nextClick="this.nextSalePage()"
           @visualize="(rowN, colN) => this.visualizeSale(rowN)"
+          @pdf="(rowN, colN) => this.generatePDF(rowN)"
         />
       </div>
 
@@ -171,7 +172,7 @@ export default {
 
       tableSalesData: {
         'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Visualizar', 'Gerar pdf' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'visualize', 'string' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'visualize', 'pdf' ],
         'colWidths': [ '10%', '24%', '20%', '20%', '10%', '8%', '8%' ],
         'content': []
       },
@@ -237,7 +238,7 @@ export default {
             Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
             Utils.getCurrencyFormat(sale['sale_total_value']),
             { 'showVisualize': true },
-            '']);
+            { 'showPdf': true }]);
         });
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
@@ -314,6 +315,10 @@ export default {
 
     visualizeSale(salePos){
       this.$root.renderView('vervenda', { 'sale_id' : this.salesIds[salePos] });
+    },
+
+    generatePDF(salePos){
+      console.log('generate pdf ' + this.salesIds[salePos]);
     }
   }
 }
