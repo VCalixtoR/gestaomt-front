@@ -124,6 +124,18 @@
               />
             </div>
 
+            <div v-if="this.tableData['colTypes'][indexC] == 'visualize'" :ref="'tableContent' + indexCR" class="wrapperVisualize">
+              <font-awesome-icon v-if="content['showVisualize']"
+                class="iconVisualize"
+                icon="fa-solid fa-eye"
+                :style="{
+                  'font-size': 'var(--text-small)',
+                  'color': 'var(--color-pink3)'
+                }"
+                @click="$emit('visualize', indexCR, indexC)"
+              />
+            </div>
+
             <div v-if="this.tableData['colTypes'][indexC] == 'acceptReject'"
               :ref="'tableContent' + indexCR"
               class="wrapperAcceptReject">
@@ -231,6 +243,18 @@
                   'color': 'var(--color-pink3)'
                 }"
                 @click="$emit('edit', indexCR, indexC)"
+              />
+            </div>
+
+            <div v-if="this.tableData['colTypes'][indexC] == 'visualize'" :ref="'tableContent' + indexCR" class="wrapperVisualize">
+              <font-awesome-icon v-if="content['showVisualize']"
+                class="iconVisualize"
+                icon="fa-solid fa-eye"
+                :style="{
+                  'font-size': 'var(--text-small)',
+                  'color': 'var(--color-pink3)'
+                }"
+                @click="$emit('visualize', indexCR, indexC)"
               />
             </div>
 
@@ -495,14 +519,14 @@ export default {
     margin: 0px 10px;
   }
 }
-.wrapperEdit{
+.wrapperEdit, .wrapperVisualize{
   display: inline-block;
   margin: 0px 10px;
 }
-.iconAcceptReject, .iconPencil{
+.iconAcceptReject, .iconPencil, .iconVisualize{
   cursor: pointer;
 }
-.iconPencil{
+.iconPencil, .iconVisualize{
   display: inline-block;
 }
 .contentBox{

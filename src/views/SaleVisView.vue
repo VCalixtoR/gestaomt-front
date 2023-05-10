@@ -129,6 +129,7 @@
           :maxPages="this.maxPages"
           @previousClick="this.previousSalePage()"
           @nextClick="this.nextSalePage()"
+          @visualize="(rowN, colN) => this.visualizeSale(rowN)"
         />
       </div>
 
@@ -170,7 +171,7 @@ export default {
 
       tableSalesData: {
         'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Visualizar', 'Gerar pdf' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'visualize', 'string' ],
         'colWidths': [ '10%', '24%', '20%', '20%', '10%', '8%', '8%' ],
         'content': []
       },
@@ -185,7 +186,9 @@ export default {
       creationDateTimeEnd: null,
       saleStatus: null,
       totalValueStart: null,
-      totalValueEnd: null
+      totalValueEnd: null,
+
+      salesIds: []
     }
   },
 
@@ -223,15 +226,17 @@ export default {
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sales']){
+        this.salesIds = [];
 
         vreturn['response']['sales'].forEach(sale => {
+          this.salesIds.push(sale['sale_id']);
           this.tableSalesData['content'].push([
             `VENDA-${sale['sale_id']}`,
             sale['sale_client_name'],
             `${sale['payment_method_name']} (${sale['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(Number(sale['sale_total_value'])/Number(sale['payment_method_Installment_number']))})`,
             Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
             Utils.getCurrencyFormat(sale['sale_total_value']),
-            '',
+            { 'showVisualize': true },
             '']);
         });
 
@@ -305,6 +310,10 @@ export default {
         this.saleStatus,
         this.totalValueStart,
         this.totalValueEnd)
+    },
+
+    visualizeSale(salePos){
+      this.$root.renderView('editarvenda', { 'sale_id' : this.salesIds[salePos] })
     }
   }
 }

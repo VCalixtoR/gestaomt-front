@@ -342,6 +342,20 @@ export default {
   },
 
   async created() {
+
+    if(this.$route.name == 'cadastrarvenda'){
+      this.creationCreated();
+    }
+    else{
+      this.visualizeCreated();
+    }
+  },
+
+  methods:{
+
+    // creation of sale
+    async creationCreated(){
+      
     this.$root.setPageLoggedName('Geração de Vendas');
 
     // clients
@@ -358,7 +372,7 @@ export default {
       this.$root.renderRequestErrorMsg(vreturn, []);
       this.$root.renderView('home');
     }
-    
+
     // products
     vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
 
@@ -385,9 +399,21 @@ export default {
     }
     this.loadSaleTablePaymentMethods();
     this.updateSaleTable();
-  },
+    },
 
-  methods:{
+    // visualize of sale
+    async visualizeCreated(){
+
+      this.$root.setPageLoggedName('Visualização de Venda');
+
+      if(!this.$root.pageParams || !this.$root.pageParams['sale_id']){
+        this.$root.renderView('home');
+        return;
+      }
+      let saleId = this.$root.pageParams['sale_id'];
+      console.log(saleId);
+
+    },
 
     // on client name selected updates its cpf
     updateCpf(clientId){

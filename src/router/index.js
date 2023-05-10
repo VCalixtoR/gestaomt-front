@@ -65,6 +65,11 @@ const routes = [
     component: SaleVisView
   },
   {
+    path: '/editarvenda',
+    name: 'editarvenda',
+    component: SaleCreView
+  },
+  {
     path: '/admin/funcionarios',
     name: 'admfuncionarios',
     component: AdmEmployeeView
