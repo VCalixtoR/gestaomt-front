@@ -565,6 +565,24 @@ async function createSale(token_jwt, args){
   return vreturn;
 }
 
+async function getSale(token_jwt, args){
+
+  let myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let querystring = parseQueryStrFromObj({
+    'sale_id': args[0]
+  });
+
+  let vreturn = await baseRequestFBody(myHeaders, `sale${querystring}`);
+  return vreturn;
+}
+
 async function getSales(token_jwt, args){
 
   let myHeaders = {
@@ -651,6 +669,7 @@ export default{
   getProducts,
   getProductInfo,
   createSale,
+  getSale,
   getSales,
   getSaleInfo,
   getEvents

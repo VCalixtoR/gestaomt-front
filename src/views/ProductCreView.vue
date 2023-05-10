@@ -498,6 +498,10 @@ export default {
   width: 100%;
   padding: 10px;
 }
+.textAreaObservations{
+  height: 80px;
+  width: 100%;
+}
 @media (max-width: 1200px) {
   .pageSectionRow{
     margin: 5px 10px;

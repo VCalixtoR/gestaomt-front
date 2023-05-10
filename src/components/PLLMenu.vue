@@ -148,7 +148,7 @@ export default {
         ] },
         { label: "Vendas", faIconName: "money-bill", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
           { subLabel: "Gerar", view: 'cadastrarvenda', sSelected: false, sHover: false }, 
-          { subLabel: "Visualizar", view: 'vervenda', sSelected: false, sHover: false }
+          { subLabel: "Visualizar", view: 'listarvendas', sSelected: false, sHover: false }
         ] },
         { label: "Funcionários", faIconName: "users", view: 'admfuncionarios', admAcessOnly: true, iSelected: false, iHover: false, subItemsShow: false, subItems: [] },
         { label: "Histórico", faIconName: "clock-rotate-left", view: 'admeventos', admAcessOnly: true, iSelected: false, iHover: false, subItemsShow: false, subItems: [] }

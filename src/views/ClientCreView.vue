@@ -646,6 +646,7 @@ export default {
   padding: 10px;
 }
 .textAreaObservations{
+  height: 80px;
   width: 100%;
 }
 .btnplusWrapper{

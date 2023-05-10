@@ -2,154 +2,85 @@
 
   <div class="pageContent">
 
-    <div class="filterSection">
-      
+    <div class="pageSection">
       <TextC colorClass="black1" fontSize='var(--text-title)'>
-        Filtrar
+        Cliente
       </TextC>
-
-      <div class="filterRow">
-        <div class="row1Left">
-          <LabelC for="saleCodeInput"
-            labelText="Código"
-            class="plabel"
-          />
-          <InputC id="saleCodeInput"
-            ref="saleCodeInput"
-            class="pinput saleCodeInput"
-            type="text"
-            name="salecode"
-            value="VENDA-"
-            :mask="[ 'VENDA-####' ]"
-          />
-        </div>
-
-        <div class="row1Right">
-          <LabelC for="lastSaleDateStartInput"
-            labelText="Data de geração: De"
-            class="plabel"
-          />
-          <InputC id="lastSaleDateStartInput"
-            ref="lastSaleDateStartInput"
-            class="pinput lastSaleDateStartInput"
-            type="datetime-local"
-            name="lastBuyStart"
-          />
-
-          <LabelC for="lastSaleDateEndInput"
-            labelText="até"
-            class="plabel"
-          />
-          <InputC id="lastSaleDateEndInput"
-            ref="lastSaleDateEndInput"
-            class="pinput lastSaleDateEndInput"
-            type="datetime-local"
-            name="lastBuyEnd"
-          />
-        </div>
-      </div>
-
-      <div class="filterRow">
-        <div class="row2Left">
-          <LabelC for="cliNameSelect"
-            labelText="Nome do cliente"
-            class="plabel"
-          />
-          <SelectWithFilter
-            id="cliNameSelect" 
-            ref="cliNameSelect"
-            class="pselect cliNameSelect"
-            colorClass="pink3"
-            name="cliname"
-            :items="this.cliNameSelectItems"
-          />
-        </div>
-        <div class="row2Right">
-          <LabelC for="startTotalPriceInput"
-            labelText="Valor final: De"
-            class="plabel"
-          />
-          <InputC id="startTotalPriceInput"
-            ref="startTotalPriceInput"
-            class="pinput startTotalPriceInput"
-            type="text"
-            name="starttotalprice"
-            :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
-          />
-
-          <LabelC for="endTotalPriceInput"
-            labelText="até"
-            class="plabel endTotalPriceInput"
-          />
-          <InputC id="endTotalPriceInput"
-            ref="endTotalPriceInput"
-            class="pinput endTotalPriceInput"
-            type="text"
-            name="endtotalprice"
-            :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
+      <div class="pageSectionRow">
+        <div class="tableClientWrapper">
+          <TablePink
+            ref="tableClient"
+            class="tableClient"
+            :tableData="this.tableClientData"
           />
         </div>
       </div>
     </div>
 
-    <div class='buttonsWrapper'>
-      <div class='filterButton'>
+    <div class="pageSection">
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Venda
+      </TextC>
+      <div class="pageSectionRow">
+        <div class="tableSaleWrapper">
+          <TablePink
+            ref="tableSale"
+            class="tableSale"
+            :tableData="this.tableSaleData"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="pageSection">
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Produtos
+      </TextC>
+      <div class="pageSectionRow">
+        <div class="tableProductsWrapper">
+          <TablePink
+            ref="tableProducts"
+            class="tableProducts"
+            :tableData="this.tableProductsData"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="buttonsWrapper">
+      <div class="buttonGeneratePDFWrapper">
         <ButtonC colorClass="pink3"
-          :id="'btnApplyFilter'"
-          label="Filtrar"
+          id="createSaleButton"
+          class="btnP"
+          label="Gerar PDF"
           width="100%"
           padding="3px 0px"
-          @click="this.filter()"
+          @click="this.generatePDF()"
         />
       </div>
 
-      <div class='clearFilterButton'>
-        <ButtonC colorClass="black1"
-          :id="'btnCleanFilter'"
-          label="Limpar Filtro"
+      <div class="buttonReutilizeWrapper">
+        <ButtonC colorClass="pink3"
+          id="btnCleanFields"
+          class="btnP"
+          label="Reaproveitar"
           width="100%"
           padding="3px 0px"
-          @click="this.cleanFilter()"
+          @click="this.reutilizeSale()"
         />
       </div>
-    </div>
-
-    <div class="tableSaleRow">
-
-      <TextC colorClass="black1" fontSize='var(--text-title)'>
-        Tabela de Vendas
-      </TextC>
-      
-      <div class="tableSalesWrapper">
-        <TablePink
-          class="tableSales"
-          :tableData="this.tableSalesData"
-          :showPrevNextButtons="true"
-          :actualPage="this.actualPage"
-          :maxPages="this.maxPages"
-          @previousClick="this.previousSalePage()"
-          @nextClick="this.nextSalePage()"
-          @visualize="(rowN, colN) => this.visualizeSale(rowN)"
-        />
-      </div>
-
     </div>
 
   </div>
-
 </template>
 
 <script>
 
 import ButtonC from '../components/ButtonC.vue'
-import InputC from '../components/InputC.vue'
-import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
-import SelectC from '../components/SelectC.vue'
-import SelectWithFilter from '../components/SelectWithFilter.vue'
 import TablePink from '../components/TablePink.vue'
 import TextC from '../components/TextC.vue'
-import Utils from '../js/utils'
+import Utils from '../js/utils.js'
 
 export default {
   
@@ -157,163 +88,95 @@ export default {
 
   components: {
     ButtonC,
-    InputC,
-    LabelC,
-    SelectC,
-    SelectWithFilter,
     TablePink,
     TextC
   },
 
   data() {
     return {
-      cliNameSelectItems: [],
-
-      tableSalesData: {
-        'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Visualizar', 'Gerar pdf' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'visualize', 'string' ],
-        'colWidths': [ '10%', '24%', '20%', '20%', '10%', '8%', '8%' ],
+      tableClientData:{
+        'titles': [ 'Nome', 'CPF' ],
+        'colTypes': [ 'string', 'string' ],
+        'colWidths': [ '60%', '40%' ],
         'content': []
       },
-
-      actualPage: 1,
-      maxPages: 1,
-      defLimit: 10,
-
-      saleId: null,
-      clientName: null,
-      creationDateTimeStart: null,
-      creationDateTimeEnd: null,
-      saleStatus: null,
-      totalValueStart: null,
-      totalValueEnd: null,
-
-      salesIds: []
+      tableSaleData: {
+        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento', 'Parcelas' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
+        'colWidths': [ '15%', '13%', '12%', '15%', '15%', '20%', '10%' ],
+        'content': []
+      },
+      tableProductsData: {
+        'titles': [ 'Código', 'Nome', 'Tamanho', 'Cor', 'Outro', 'Valor', 'Quantidade' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
+        'colWidths': [ '10%', '30%', '10%', '10%', '15%', '15%', '10%'],
+        'content': []
+      }
     }
   },
 
   async created() {
-    this.$root.setPageLoggedName('Visualizar Vendas');
-
-    // clients names
-    let vreturn = await this.$root.doRequest(
-      Requests.getClients,
-      [ true, null, null, null, null, null, null, null, null ]
-    );
-
-    if(vreturn && vreturn['ok'] && vreturn['response']){
-      let loadedClients = vreturn['response']['clients'];
-      this.cliNameSelectItems = loadedClients.map(x => ({'label': x['client_name'], 'value': x['client_id'], 'cpf': x['client_cpf']}));
-    }
-    else{
-      this.$root.renderRequestErrorMsg(vreturn, []);
+    this.$root.setPageLoggedName('Visualizar Venda');
+    if(!this.$root.pageParams || !this.$root.pageParams['sale_id']){
       this.$root.renderView('home');
+      return;
     }
-
-    await this.loadSales(this.defLimit, 0);
+    this.loadSale(this.$root.pageParams['sale_id']);
   },
 
   methods:{
 
-    async loadSales(limit, offset, saleId=null, clientName=null, creationDateTimeStart=null, creationDateTimeEnd=null, saleStatus=null, totalValueStart=null, totalValueEnd=null){
+    // load sale
+    async loadSale(saleId){
 
-      this.clientIds = [];
-      this.tableSalesData['content'] = [];
-      
       let vreturn = await this.$root.doRequest(
-        Requests.getSales,
-        [ limit, offset, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd ]
+        Requests.getSale,
+        [ saleId ]
       );
 
-      if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sales']){
-        this.salesIds = [];
-
-        vreturn['response']['sales'].forEach(sale => {
-          this.salesIds.push(sale['sale_id']);
-          this.tableSalesData['content'].push([
-            `VENDA-${sale['sale_id']}`,
-            sale['sale_client_name'],
-            `${sale['payment_method_name']} (${sale['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(Number(sale['sale_total_value'])/Number(sale['payment_method_Installment_number']))})`,
-            Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
-            Utils.getCurrencyFormat(sale['sale_total_value']),
-            { 'showVisualize': true },
-            '']);
-        });
-
-        this.actualPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
-
-        this.saleId = saleId;
-        this.clientName = clientName;
-        this.creationDateTimeStart = creationDateTimeStart;
-        this.creationDateTimeEnd = creationDateTimeEnd;
-        this.saleStatus = saleStatus;
-        this.totalValueStart = totalValueStart;
-        this.totalValueEnd = totalValueEnd;
+      if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sale_client'] && vreturn['response']['sale_products']){
+        this.loadClientData(vreturn['response']['sale_client']);
+        this.loadSaleData(vreturn['response']);
+        this.loadProductsData(vreturn['response']['sale_products']);
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderView('home');
       }
     },
-
-    async filter(){
-      
-      let saleId = this.$refs.saleCodeInput.getV();
-      let clientName = this.$refs.cliNameSelect.getL();
-      let creationDateTimeStart = this.$refs.lastSaleDateStartInput.getV();
-      let creationDateTimeEnd = this.$refs.lastSaleDateEndInput.getV();
-      let totalValueStart = this.$refs.startTotalPriceInput.getV();
-      let totalValueEnd = this.$refs.endTotalPriceInput.getV();
-
-      saleId = saleId.replace('VENDA-', '');
-      totalValueStart = Utils.getNumberFormatFromCurrency(totalValueStart);
-      totalValueEnd = Utils.getNumberFormatFromCurrency(totalValueEnd);
-
-      await this.loadSales(this.defLimit, 0, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, null, totalValueStart, totalValueEnd);
+    loadClientData(clientData){
+      this.tableClientData['content'] = [[clientData['client_name'], clientData['client_cpf']]];
     },
-
-    async cleanFilter(){
-
-      this.$refs.saleCodeInput.setV('VENDA-');
-      this.$refs.cliNameSelect.setV('');
-      this.$refs.lastSaleDateStartInput.setV('');
-      this.$refs.lastSaleDateEndInput.setV('');
-      this.$refs.startTotalPriceInput.setV('');
-      this.$refs.endTotalPriceInput.setV('');
-
-      await this.loadSales(this.defLimit, 0);
+    loadSaleData(saleData){
+      let saleRawValue = saleData['sale_total_value']/(1-saleData['sale_total_discount_percentage']);
+      this.tableSaleData['content'] = [[
+        `VEND-${saleData['sale_id']}`,
+        `${Math.trunc(Number(saleData['sale_total_discount_percentage'])*100)}%`,
+        saleRawValue-saleData['sale_total_value'],
+        saleRawValue,
+        saleData['sale_total_value'],
+        saleData['payment_method_name'],
+        `${saleData['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(saleData['sale_total_value']/Number(saleData['payment_method_Installment_number']))}`
+      ]];
     },
-
-    async previousSalePage(){
-
-      await this.loadSales( 
-        this.defLimit,
-        (this.actualPage-2)*10,
-        this.saleId,
-        this.clientName,
-        this.creationDateTimeStart,
-        this.creationDateTimeEnd,
-        this.saleStatus,
-        this.totalValueStart,
-        this.totalValueEnd)
+    loadProductsData(productsData){
+      productsData.forEach(p => {
+        this.tableProductsData['content'].push([
+          p['product_id'],
+          p['product_name'],
+          p['product_size_name'],
+          p['product_color_name'] ? p['product_color_name'] : '---',
+          p['product_other_name'] ? p['product_other_name'] : '---',
+          p['sale_has_product_price'],
+          p['sale_has_product_quantity']
+        ]);
+      });
     },
-
-    async nextSalePage(){
-
-      await this.loadSales( 
-        this.defLimit, 
-        this.actualPage*10,
-        this.saleId,
-        this.clientName,
-        this.creationDateTimeStart,
-        this.creationDateTimeEnd,
-        this.saleStatus,
-        this.totalValueStart,
-        this.totalValueEnd)
+    generatePDF(){
+      console.log('generate pdf');
     },
-
-    visualizeSale(salePos){
-      this.$root.renderView('editarvenda', { 'sale_id' : this.salesIds[salePos] })
+    reutilizeSale(){
+      console.log('reutilize sale');
     }
   }
 }
@@ -326,75 +189,50 @@ export default {
   width: 100%;
   height: 100%;
 }
-.filterRow{
-  margin: 10px 20px;
-}
-.plabel{
-  margin: 0px 5px;
-}
-.tableSaleRow{
-  margin-top: 20px;
-}
-.tableSalesWrapper{
-  margin-top: 20px;
-}
-.buttonsWrapper{
-  text-align: left;
-  margin-left: 20px;
+.pageSection{
+  width: 100%;
+  padding: 10px;
 }
 @media (min-width: 1201px) {
-  .row1Left, .row2Left, .row1Right, .row2Right{
-    display: inline-block;
-    margin: 0px;
+  .pageSectionRow{
+    margin: 10px 20px;
   }
-  .row1Left, .row2Left{
+  .tableClientWrapper, .tableSaleWrapper, .tableProductsWrapper{
+    width: 98%;
+  }
+  .tableProducts, .tableSale, .tableClient{
+    display: inline-block;
+  }
+  .buttonsWrapper{
     text-align: left;
+    width: 100%;
   }
-  .row1Right, .row2Right{
-    text-align: right;
-  }
-  .row1Left{
-    width: 190px;
-  }
-  .row1Right{
-    width: calc(100% - 190px);
-  }
-  .row2Left, .row2Right{
-    width: 50%;
-  }
-  .saleCodeInput {
-    width: 115px;
-  }
-  .lastSaleDateStartInput, .lastSaleDateEndInput{
-    width: 205px;
-  }
-  .startTotalPriceInput, .endTotalPriceInput{
-    width: 100px;
-  }
-  .filterButton, .clearFilterButton{
-    display: inline-block;
+  .buttonGeneratePDFWrapper, .buttonReutilizeWrapper{
     width: 20%;
-    padding: 0px;
-    margin-right: 20px;
-  }
-  .tableSalesWrapper{
-    text-align: center;
+    display: inline-block;
+    margin-left: 20px;
   }
 }
 @media (max-width: 1200px) {
-  .plabel{
-    margin: 5px 0px;
-    display: block;
+  .pageSectionRow{
+    margin: 5px 10px;
   }
-  .pinput, .pselect{
-    display: block;
+  .tableClientWrapper, .tableSaleWrapper, .tableProductsWrapper{
+    width: 100%;
+    text-align: center;
+  }
+  .buttonsWrapper{
+    text-align: center;
     width: 100%;
   }
-  .filterButton, .clearFilterButton{
-    display: block;
-    margin: auto;
+  .buttonGeneratePDFWrapper, .buttonReutilizeWrapper{
     width: 80%;
-    margin-top: 10px;
+    display: inline-block;
+    margin: 10px;
+    text-align: center;
+  }
+  .btnP{
+    display: inline-block;
   }
 }
 
