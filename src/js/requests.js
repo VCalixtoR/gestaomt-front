@@ -460,6 +460,8 @@ async function createProduct(token_jwt, args){
   if(args[3])
     jsonBody['product_type_ids'] = args[3];
   jsonBody['customized_products'] = args[4];
+  if(args[5])
+    jsonBody['product_observations'] = args[5];
 
   var myHeaders = {
     method: 'PUT',

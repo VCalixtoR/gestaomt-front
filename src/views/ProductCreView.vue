@@ -160,6 +160,22 @@
 
     </div>
 
+    <div class="pageSection">
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Observações
+      </TextC>
+
+      <div class="pageSectionRow">
+        <TextAreaC
+          id="textAreaObservations"
+          name="textAreaObservations"
+          ref="textAreaObservations"
+          class="textAreaObservations"
+          :rows="5" :cols="200"
+        />
+      </div>
+    </div>
+
     <div class="buttonsWrapper">
       <div class="buttonSaveWrapper">
         <ButtonC colorClass="pink3"
@@ -197,6 +213,7 @@ import Requests from '../js/requests.js'
 import SelectC from '../components/SelectC.vue'
 import SelectMultipleC from '../components/SelectMultipleC.vue'
 import TablePink from '../components/TablePink.vue'
+import TextAreaC from '../components/TextAreaC.vue'
 import TextC from '../components/TextC.vue'
 import Utils from '../js/utils'
 
@@ -211,6 +228,7 @@ export default {
     SelectC,
     SelectMultipleC,
     TablePink,
+    TextAreaC,
     TextC
   },
 
@@ -361,6 +379,7 @@ export default {
       let collectionSelectIds = this.$refs.collectionSelect.getV();
       let tblPriceStockV = this.$refs.tblPriceStock.getV();
       let parsedCustomProducts = [];
+      let observationsV = this.$refs.textAreaObservations.getV().trim();
 
       if(nameInputV.length < 5 || nameInputV.length > 50){
         this.$root.renderMsg('warn', 'Nome inválido!', 'Necessário de 5 a 50 caracteres.');
@@ -432,7 +451,7 @@ export default {
 
       let vreturn = await this.$root.doRequest(
         Requests.createProduct,
-        [codeInputV, nameInputV, collectionSelectIds, typeSelectIds, parsedCustomProducts]
+        [codeInputV, nameInputV, collectionSelectIds, typeSelectIds, parsedCustomProducts, observationsV]
       );
 
       if(vreturn && vreturn['ok']){
