@@ -398,10 +398,11 @@ export default {
       this.$refs['cliCpfInput'].setV(this.cliNameSelectItems.find(x => x['value'] == clientId)['cpf']);
     },
     // on product name or code selected updates each and its personalization
-    updateProduct(productId){
+    async updateProduct(productId){
       this.$refs['nameSelect'].setV(productId);
       this.$refs['codeSelect'].setV(productId);
-      this.updateProductPersonalization(this.$refs['codeSelect'].getL());
+      await this.updateProductPersonalization(this.$refs['codeSelect'].getL());
+      this.updateProductQuantityPrice();
     },
     // get product personalization data and load selects with the data
     async updateProductPersonalization(productCode){
@@ -844,8 +845,11 @@ export default {
   .leftLabel{
     width: 115px;
   }
-  .cliNameSelect, .nameSelect, .quantitySelect{
+  .cliNameSelect, .nameSelect{
     width: 60%;
+  }
+  .quantitySelect{
+    width: calc(90% - 115px);
   }
   .cliCpfInput, .codeSelect{
     width: 50%;
