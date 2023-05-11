@@ -349,7 +349,7 @@ export default {
       vreturn = await this.$root.doRequest( Requests.getConditionalInfo, [] );
 
       if(vreturn && vreturn['ok'] && vreturn['response']){
-        this.tableConditionalData['content'][0] = [`CONDICIONAL-${vreturn['response']['next_conditional_id']}`];
+        this.tableConditionalData['content'][0] = [`COND-${vreturn['response']['next_conditional_id']}`];
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, []);

@@ -144,7 +144,7 @@ export default {
         ] },
         { label: "Condicionais", faIconName: "arrow-right-arrow-left", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
           { subLabel: "Gerar", view: 'cadastrarcondicional', sSelected: false, sHover: false },
-          { subLabel: "Visualizar", view: '', sSelected: false, sHover: false }
+          { subLabel: "Visualizar", view: 'listarcondicionais', sSelected: false, sHover: false }
         ] },
         { label: "Vendas", faIconName: "money-bill", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
           { subLabel: "Gerar", view: 'cadastrarvenda', sSelected: false, sHover: false }, 
