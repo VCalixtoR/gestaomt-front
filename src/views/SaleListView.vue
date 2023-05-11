@@ -318,7 +318,8 @@ export default {
     },
 
     generatePDF(salePos){
-      console.log('generate pdf ' + this.salesIds[salePos]);
+      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
+      //console.log('generate pdf ' + this.salesIds[salePos]);
     }
   }
 }

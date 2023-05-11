@@ -76,6 +76,7 @@
               :ref="'tableContent' + indexCR"
               :id="'tableSelect' + indexCR + '_' + indexC"
               colorClass="pink3NoBorder"
+              :customFontColor="content['customFontColor']"
               :name="'tableSelect' + indexCR + '_' + indexC"
               :items="content['items']"
               :initialOptValue="content['initialOptValue'] ? content['initialOptValue'] : null"
@@ -84,6 +85,7 @@
               :style="{
                 'width': '100%'
               }"
+              :selectDisabled="content['disabled']"
             />
 
             <InputC v-if="this.tableData['colTypes'][indexC] == 'input'"
@@ -210,6 +212,7 @@
               :ref="'tableContent' + indexCR"
               :id="'tableSelect' + indexCR + '_' + indexC"
               colorClass="pink3"
+              :customFontColor="content['customFontColor']"
               :name="'tableSelect' + indexCR + '_' + indexC"
               :items="content['items']"
               :initialOptValue="content['initialOptValue'] ? content['initialOptValue'] : null"
@@ -218,6 +221,7 @@
               :style="{
                 'width': this.tableData['single-title'] ? '100%' : this.calcInputWidthOnMobile(this.tableData['titles'][indexC])
               }"
+              :disabled="content['disabled']"
             />
 
             <InputC v-if="this.tableData['colTypes'][indexC] == 'input'"

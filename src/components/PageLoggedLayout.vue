@@ -76,7 +76,8 @@ export default {
 
   methods: {
     modifyUserInfo(){
-      console.log('modify');
+      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
+      //console.log('modify');
     },
     async userSignOut(){
       await this.$root.doRequest(Requests.deleteAuthToken, []);

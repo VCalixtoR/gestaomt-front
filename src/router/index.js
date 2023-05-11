@@ -11,6 +11,7 @@ import ProductCreView from '../views/ProductCreView.vue'
 import ProductVisView from '../views/ProductVisView.vue'
 import ConditionalCreView from '../views/ConditionalCreView.vue'
 import ConditionalListView from '../views/ConditionalListView.vue'
+import ConditionalVisView from '../views/ConditionalVisView.vue'
 import SaleCreView from '../views/SaleCreView.vue'
 import SaleListView from '../views/SaleListView.vue'
 import SaleVisView from '../views/SaleVisView.vue'
@@ -66,6 +67,11 @@ const routes = [
     path: '/listarcondicionais',
     name: 'listarcondicionais',
     component: ConditionalListView
+  },
+  {
+    path: '/vercondicional',
+    name: 'vercondicional',
+    component: ConditionalVisView
   },
   {
     path: '/cadastrarvenda',

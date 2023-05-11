@@ -50,7 +50,7 @@
     <div class="buttonsWrapper">
       <div class="buttonGeneratePDFWrapper">
         <ButtonC colorClass="pink3"
-          id="createSaleButton"
+          id="generatePdfButton"
           class="btnP"
           label="Gerar PDF"
           width="100%"
@@ -61,7 +61,7 @@
 
       <div class="buttonReutilizeWrapper">
         <ButtonC colorClass="pink3"
-          id="btnCleanFields"
+          id="btnReutilize"
           class="btnP"
           label="Reaproveitar"
           width="100%"
@@ -173,10 +173,12 @@ export default {
       });
     },
     generatePDF(){
-      console.log('generate pdf');
+      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
+      //console.log('generate pdf');
     },
     reutilizeSale(){
-      console.log('reutilize sale');
+      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
+      //console.log('reutilize sale');
     }
   }
 }

@@ -576,7 +576,7 @@ async function getConditional(token_jwt, args){
     'conditional_id': args[0]
   });
 
-  let vreturn = await baseRequestFBody(myHeaders, `sale${querystring}`);
+  let vreturn = await baseRequestFBody(myHeaders, `conditional${querystring}`);
   return vreturn;
 }
 
@@ -615,6 +615,26 @@ async function getConditionalInfo(token_jwt, _){
   }
 
   let vreturn = await baseRequestFBody(myHeaders, `conditional/info`);
+  return vreturn;
+}
+
+async function updateConditionalStatus(token_jwt, args){
+
+  var jsonBody = {};
+  jsonBody['conditional_id'] = args[0];
+  jsonBody['conditional_status'] = args[1];
+  
+  var myHeaders = {
+    method: 'PATCH',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(jsonBody)
+  }
+  
+  let vreturn = await baseRequestFBody(myHeaders, `conditional`);
   return vreturn;
 }
 
@@ -749,6 +769,7 @@ export default{
   getConditional,
   getConditionals,
   getConditionalInfo,
+  updateConditionalStatus,
   createSale,
   getSale,
   getSales,

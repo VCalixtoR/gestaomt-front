@@ -7,7 +7,7 @@
     @focusout='this.handleOutClick()'
     tabindex="0">
 
-    <div :class="'selectBox ' + this.colorClass"
+    <div :class="'selectBox ' + this.colorClass + (this.selectDisabled ? ' disabled ' : '') + (this.customFontColor ? this.customFontColor : '')"
       :id="this.id"
       :name="this.name"
       ref='selectBox'
@@ -23,6 +23,7 @@
       <font-awesome-icon v-if="this.items && this.items.length && this.iconVisible"
         class='selchevron'
         icon='fa-solid fa-chevron-down'
+        :visibility="(this.selectDisabled ? 'hidden' : 'visible')"
       />
     
     </div>
@@ -66,6 +67,10 @@ export default {
       default: 'pink3',
       type: String
     },
+    customFontColor: {
+      default: null,
+      type: String
+    },
     selectBoxPadding: {
       default: '3px 7px',
       type: String
@@ -84,6 +89,10 @@ export default {
     },
     iconVisible: {
       default: true,
+      type: Boolean
+    },
+    selectDisabled: {
+      default: false,
       type: Boolean
     }
   },
@@ -108,6 +117,9 @@ export default {
 
   methods:{
     showOpts(show){
+      if(this.selectDisabled){
+        return;
+      }
       this.showOptsT = show;
       document.getElementById('selectWrapper' + this.id).focus();
     },
@@ -128,15 +140,24 @@ export default {
       }
     },
     handleSelClick(){
+      if(this.selectDisabled){
+        return;
+      }
       this.selectOptsWidth = this.$refs.selectBox.offsetWidth + 'px';
       this.showOptsT = !this.showOptsT;
     },
     handleOptClick(index){
+      if(this.selectDisabled){
+        return;
+      }
       this.actualOptSelected = index;
       this.showOptsT = !this.showOptsT;
       this.$emit('optClicked',this.items[index]['value']);
     },
     handleOutClick(){
+      if(this.selectDisabled){
+        return;
+      }
       this.showOptsT = false;
     }
   }
@@ -189,7 +210,7 @@ export default {
 .selectBox.pink3NoBorder{
   background-color: var(--color-pink1);
   border: none;
-  color: var(--color-black2);
+  color: var(--color-black1);
 }
 .selectOpts.pink3, .selectOpts.pink3NoBorder{
   background-color: var(--color-pink1);
@@ -202,6 +223,13 @@ export default {
 .selectOpt.pink3:hover, .selectOpt.pink3NoBorder:hover{
   background-color: var(--color-pink3);
   color: var(--color-white);
+}
+.selectBox.fontred {
+  color: red;
+}
+.selectBox.fontpink3 {
+  color: var(--color-pink3);
+  font-weight: bold;
 }
 
 

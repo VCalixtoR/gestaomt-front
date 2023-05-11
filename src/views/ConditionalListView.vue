@@ -112,15 +112,16 @@
       <div class="tableConditionalsWrapper">
         <TablePink
           class="tableConditionals"
+          ref="tableConditionals"
           :tableData="this.tableConditionalsData"
           :showPrevNextButtons="true"
           :actualPage="this.actualPage"
           :maxPages="this.maxPages"
           @previousClick="this.previousConditionalPage()"
           @nextClick="this.nextConditionalPage()"
+          @optClicked="(itemValue, indexCR, indexC) => this.changeConditionalStatus(itemValue, indexCR)"
           @visualize="(rowN, colN) => this.visualizeConditional(rowN)"
           @pdf="(rowN, colN) => this.generatePDF(rowN)"
-          @reject="(rowN, colN) => this.cancelConditional(rowN)"
         />
       </div>
 
@@ -166,9 +167,9 @@ export default {
       ],
 
       tableConditionalsData: {
-        'titles': [ 'Código', 'Nome do cliente', 'Data e hora de geração', 'Status', 'Visualizar', 'Gerar pdf', 'Cancelar' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'visualize', 'pdf', 'acceptReject' ],
-        'colWidths': [ '10%', '25%', '20%', '15%', '10%', '10%', '10%' ],
+        'titles': [ 'Código', 'Nome do cliente', 'Data e hora de geração', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
+        'colTypes': [ 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
+        'colWidths': [ '10%', '25%', '20%', '19%', '13%', '13%' ],
         'content': []
       },
 
@@ -182,7 +183,8 @@ export default {
       creationDateTimeStart: null,
       creationDateTimeEnd: null,
 
-      conditionalIds: []
+      conditionalIds: [],
+      conditionalStatusTmp: []
     }
   },
 
@@ -221,17 +223,27 @@ export default {
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['conditionals']){
         this.conditionalIds = [];
+        this.conditionalStatusTmp = [];
 
         vreturn['response']['conditionals'].forEach(conditional => {
           this.conditionalIds.push(conditional['conditional_id']);
+          this.conditionalStatusTmp.push(conditional['conditional_status']);
           this.tableConditionalsData['content'].push([
             `COND-${conditional['conditional_id']}`,
             conditional['conditional_client_name'],
             Utils.getDateTimeString(conditional['conditional_creation_date_time'], '/', ':', false),
-            conditional['conditional_status'],
+            {
+              'disabled': conditional['conditional_status'] == 'Cancelado' || conditional['conditional_status'] == 'Devolvido',
+              'customFontColor': (conditional['conditional_status'] == 'Cancelado' ? 'fontred' : conditional['conditional_status'] == 'Devolvido' ? 'fontpink3' : null),
+              'initialOptValue': conditional['conditional_status'],
+              'items': [
+                { label: 'Pendente', value: 'Pendente' }, 
+                { label: 'Devolvido', value: 'Devolvido' }, 
+                { label: 'Cancelado', value: 'Cancelado', color: 'red' }
+              ]
+            },
             { 'showVisualize': true },
             { 'showPdf': true },
-            { 'showAccept': false, 'showReject': true }
           ]);
         });
 
@@ -299,17 +311,38 @@ export default {
       )
     },
 
+    async changeConditionalStatus(statusValue, conditionalPos){
+      
+      if(statusValue == this.conditionalStatusTmp[conditionalPos]){
+        return;
+      }
+
+      let vreturn = await this.$root.doRequest(Requests.updateConditionalStatus, [this.conditionalIds[conditionalPos], statusValue]);
+
+      if(!vreturn || !vreturn['ok']){
+        this.$root.renderRequestErrorMsg(vreturn, ['Status inválido', 'A condicional está cancelada e não pode ser alterada']);
+      }
+      else{
+        await this.loadConditionals( 
+          this.defLimit,
+          (this.actualPage-1)*10,
+          this.conditionalId,
+          this.clientName,
+          this.conditionalStatus,
+          this.creationDateTimeStart,
+          this.creationDateTimeEnd
+        );
+        this.$root.renderMsg('ok', 'Status alterado!', '');
+      }
+    },
+
     visualizeConditional(conditionalPos){
-      console.log('vercondicional');
-      //this.$root.renderView('vercondicional', { 'conditional_id' : this.conditionalIds[conditionalPos] });
+      this.$root.renderView('vercondicional', { 'conditional_id' : this.conditionalIds[conditionalPos] });
     },
 
     generatePDF(conditionalPos){
-      console.log('generate pdf ' + this.conditionalIds[conditionalPos]);
-    },
-
-    cancelConditional(conditionalPos){
-      console.log('cancel ' + this.conditionalIds[conditionalPos]);
+      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
+      //console.log('generate pdf ' + this.conditionalIds[conditionalPos]);
     }
   }
 }
