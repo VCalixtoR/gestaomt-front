@@ -541,6 +541,83 @@ async function getProductInfo(token_jwt, _){
   return vreturn;
 }
 
+async function createConditional(token_jwt, args){
+  
+  var jsonBody = {};
+  jsonBody['conditional_client_id'] = args[0];
+  jsonBody['conditional_employee_id'] = args[1];
+  jsonBody['conditional_has_products'] = args[2];
+
+  var myHeaders = {
+    method: 'PUT',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(jsonBody)
+  }
+
+  let vreturn = await baseRequestFBody(myHeaders, 'conditional');
+  return vreturn;
+}
+
+async function getConditional(token_jwt, args){
+
+  let myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let querystring = parseQueryStrFromObj({
+    'conditional_id': args[0]
+  });
+
+  let vreturn = await baseRequestFBody(myHeaders, `sale${querystring}`);
+  return vreturn;
+}
+
+async function getConditionals(token_jwt, args){
+
+  let myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let querystring = parseQueryStrFromObj({
+    'limit': args[0], 
+    'offset': args[1],
+    'conditional_id': args[2],
+    'conditional_client_name': args[3],
+    'conditional_status': args[4],
+    'conditional_creation_date_time_start': args[5],
+    'conditional_creation_date_time_end': args[6]
+  });
+
+  let vreturn = await baseRequestFBody(myHeaders, `conditionals${querystring}`);
+  return vreturn;
+}
+
+async function getConditionalInfo(token_jwt, _){
+
+  var myHeaders = {
+    method: 'GET',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`
+    }
+  }
+
+  let vreturn = await baseRequestFBody(myHeaders, `conditional/info`);
+  return vreturn;
+}
+
 async function createSale(token_jwt, args){
   
   var jsonBody = {};
@@ -668,6 +745,10 @@ export default{
   getProduct,
   getProducts,
   getProductInfo,
+  createConditional,
+  getConditional,
+  getConditionals,
+  getConditionalInfo,
   createSale,
   getSale,
   getSales,

@@ -143,7 +143,7 @@ export default {
           { subLabel: "Visualizar/Alterar", view: 'verproduto', sSelected: false, sHover: false } 
         ] },
         { label: "Condicionais", faIconName: "arrow-right-arrow-left", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
-          { subLabel: "Gerar", view: '', sSelected: false, sHover: false },
+          { subLabel: "Gerar", view: 'cadastrarcondicional', sSelected: false, sHover: false },
           { subLabel: "Visualizar", view: '', sSelected: false, sHover: false }
         ] },
         { label: "Vendas", faIconName: "money-bill", view: '', admAcessOnly: false, iSelected: false, iHover: false, subItemsShow: false, subItems: [
