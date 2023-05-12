@@ -349,7 +349,7 @@ export default {
       vreturn = await this.$root.doRequest( Requests.getConditionalInfo, [] );
 
       if(vreturn && vreturn['ok'] && vreturn['response']){
-        this.tableConditionalData['content'][0] = [`COND-${vreturn['response']['next_conditional_id']}`];
+        this.tableConditionalData['content'][0] = [`COND-${vreturn['response']['next_conditional_id'] ? vreturn['response']['next_conditional_id'] : 0}`];
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, []);
@@ -528,7 +528,7 @@ export default {
           content[4] == other
         ){
           foundDuplicate = true;
-          this.tableProductsData['content'][i][6] = quantity;
+          this.tableProductsData['content'][i][5] = quantity;
           this.$root.renderMsg('warn', 'Variação adicionada duplicada!', 'Quantidade foi substituída pelo valor novo');
         }
       }

@@ -103,7 +103,7 @@ export default {
       tableSaleData: {
         'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento', 'Parcelas' ],
         'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
-        'colWidths': [ '15%', '13%', '12%', '15%', '15%', '20%', '10%' ],
+        'colWidths': [ '12%', '13%', '12%', '15%', '15%', '18%', '15%' ],
         'content': []
       },
       tableProductsData: {
