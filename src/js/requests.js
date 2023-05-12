@@ -349,10 +349,11 @@ async function getClients(token_jwt, args){
     'offset': args[2],
     'client_name': args[3],
     'children_name': args[4],
-    'children_birth_month_day_start': args[5],
-    'children_birth_month_day_end': args[6],
-    'last_sale_date_start': args[7],
-    'last_sale_date_end': args[8]
+    'client_classification': args[5],
+    'children_birth_month_day_start': args[6],
+    'children_birth_month_day_end': args[7],
+    'last_sale_date_start': args[8],
+    'last_sale_date_end': args[9]
   });
 
   let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`);
@@ -388,7 +389,9 @@ async function createClient(token_jwt, args){
   if(args[12])
     jsonBody['client_children'] = args[12];
   if(args[13])
-    jsonBody['client_observations'] = args[13];
+    jsonBody['client_classification'] = args[13];
+  if(args[14])
+    jsonBody['client_observations'] = args[14];
 
   var myHeaders = {
     method: 'PUT',
@@ -434,7 +437,9 @@ async function updateClient(token_jwt, args){
   if(args[13])
     jsonBody['client_children'] = args[13];
   if(args[14])
-    jsonBody['client_observations'] = args[14];
+    jsonBody['client_classification'] = args[14];
+  if(args[15])
+    jsonBody['client_observations'] = args[15];
   
   var myHeaders = {
     method: 'PATCH',

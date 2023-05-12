@@ -9,7 +9,6 @@
       </TextC>
 
       <div class="pageSectionRow">
-        
         <div class="topRowLeft">
           <LabelC for="nameInput"
             labelText="Nome"
@@ -39,11 +38,9 @@
             disabled
           />
         </div>
-      
       </div>
 
       <div class="pageSectionRow">
-
         <div class="topRow2Left">
           <LabelC for="cpfInput"
             labelText="CPF"
@@ -84,7 +81,22 @@
             :items="this.genderSelectI"
           />
         </div>
-         
+      </div>
+
+      <div class="pageSectionRow">
+        <div class="topRow3Left">
+          <LabelC for="classSelect"
+            labelText="Classificação"
+            class="plabel"
+          />
+          <SelectC id="classSelect"
+            ref='classSelect'
+            class="pselect classSelect"
+            colorClass="pink3"
+            name="class"
+            :items="this.classSelectI"
+          />
+        </div>
       </div>
     </div>
 
@@ -337,6 +349,11 @@ export default {
   data() {
     return {
       loadedClient: null,
+      classSelectI: [
+        { label: 'Normal', value: 'Normal' },
+        { label: 'Boa', value: 'Boa' },
+        { label: 'Excelente', value: 'Excelente' }
+      ],
       genderSelectI: [
         { label: 'Feminino', value: 'F' },
         { label: 'Masculino', value: 'M' }
@@ -515,6 +532,7 @@ export default {
       let nameV = this.$refs.nameInput.getV();
       let birthV = this.$refs.birthInput.getV();
       let cpfV = this.$refs.cpfInput.getV().replaceAll(/\.|\-/g, '');
+      let classificationV = this.$refs.classSelect.getV();
       let genderV = this.$refs.genderSelect.getV();
       let cepV = this.$refs.cepInput.getV().replaceAll(/\-/g, '');
       let adressV = this.$refs.adressInput.getV();
@@ -634,7 +652,7 @@ export default {
 
       let vreturn = await this.$root.doRequest(
         Requests.updateClient,
-        [this.loadedClient['client_id'], nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV, observationsV]
+        [this.loadedClient['client_id'], nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV, classificationV, observationsV]
       );
 
       if(vreturn && vreturn['ok']){
@@ -651,6 +669,7 @@ export default {
       this.$refs.nameInput.setV(this.loadedClient['client_name']);
       this.$refs.birthInput.setV(this.loadedClient['client_birth_date']);
       this.$refs.cpfInput.setV(this.loadedClient['client_cpf']);
+      this.$refs.classSelect.setV(this.loadedClient['client_classification']);
       this.$refs.genderSelect.setV(this.loadedClient['client_gender']);
       this.$refs.cepInput.setV(this.loadedClient['client_cep']);
       this.$refs.adressInput.setV(this.loadedClient['client_adress']);
@@ -740,10 +759,10 @@ export default {
   .pageSectionRow{
     margin: 10px 20px;
   }
-  .topRowLeft, .topRowRight, .topRow2Left, .topRow2Center, .topRow2Right, .midRow1Left, .midRow1Right, .midRow2Left, .midRow2Center, .midRow2Right, .midRow3Left, .midRow3Right{
+  .topRowLeft, .topRowRight, .topRow2Left, .topRow2Center, .topRow2Right, .topRow3Left, .midRow1Left, .midRow1Right, .midRow2Left, .midRow2Center, .midRow2Right, .midRow3Left, .midRow3Right{
     display: inline-block;
   }
-  .topRowLeft, .topRow2Left, .midRow1Left, .midRow2Left, .midRow3Left{
+  .topRowLeft, .topRow2Left, .topRow3Left, .midRow1Left, .midRow2Left, .midRow3Left{
     text-align: left;
   }
   .topRow2Center, .midRow2Center, .midRow2Right{
@@ -792,7 +811,7 @@ export default {
   .nameInput{
     width: calc(100% - 80px);
   }
-  .clientId, .genderSelect, .birthInput{
+  .clientId, .genderSelect, .birthInput, .classSelect{
     width: 150px;
     text-align: center;
   }

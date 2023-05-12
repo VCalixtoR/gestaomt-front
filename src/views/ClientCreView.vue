@@ -10,7 +10,7 @@
 
       <div class="pageSectionRow">
         
-        <div class="topRowLeft">
+        <div class="topRow1Left">
           <LabelC for="nameInput"
             labelText="Nome"
             useRequiredChar
@@ -26,7 +26,7 @@
           />
         </div>
 
-        <div class="topRowRight">
+        <div class="topRow1Right">
           <LabelC for="birthInput"
             labelText="Data de Nascimento"
             class="plabel"
@@ -43,7 +43,7 @@
 
       <div class="pageSectionRow">
 
-        <div class="topRowLeft">
+        <div class="topRow2Left">
           <LabelC for="cpfInput"
             labelText="CPF"
             class="plabel leftLabel"
@@ -57,7 +57,21 @@
           />
         </div>
 
-        <div class="topRowRight">
+        <div class="topRow2Center">
+          <LabelC for="classSelect"
+            labelText="Classificação"
+            class="plabel"
+          />
+          <SelectC id="classSelect"
+            ref='classSelect'
+            class="pselect classSelect"
+            colorClass="pink3"
+            name="class"
+            :items="this.classSelectI"
+          />
+        </div>
+
+        <div class="topRow2Right">
           <LabelC for="genderSelect"
             labelText="Sexo"
             class="plabel"
@@ -322,6 +336,11 @@ export default {
 
   data() {
     return {
+      classSelectI: [
+        { label: 'Normal', value: 'Normal' },
+        { label: 'Boa', value: 'Boa' },
+        { label: 'Excelente', value: 'Excelente' }
+      ],
       genderSelectI: [
         { label: 'Feminino', value: 'F' },
         { label: 'Masculino', value: 'M' }
@@ -374,13 +393,16 @@ export default {
 
   async created() {
     this.$root.setPageLoggedName('Cadastro de Clientes');
-    this.addContact();
+    this.addContact(true);
   },
 
   methods:{
 
-    addContact(){
+    addContact(updateKey=false){
       this.tableContactItems['content'].push(this.getContactArr());
+      if(updateKey){
+        this.contactkeyToReRender = this.contactkeyToReRender + 1;
+      }
     },
     getContactArr(type="W", value=''){
 
@@ -482,6 +504,7 @@ export default {
       let nameV = this.$refs.nameInput.getV();
       let birthV = this.$refs.birthInput.getV();
       let cpfV = this.$refs.cpfInput.getV().replaceAll(/\.|\-/g, '');
+      let classificationV = this.$refs.classSelect.getV();
       let genderV = this.$refs.genderSelect.getV();
       let cepV = this.$refs.cepInput.getV().replaceAll(/\-/g, '');
       let adressV = this.$refs.adressInput.getV();
@@ -601,7 +624,7 @@ export default {
 
       let vreturn = await this.$root.doRequest(
         Requests.createClient,
-        [nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV, observationsV]
+        [nameV, cpfV, genderV, birthV, cepV, adressV, cityV, neighborhoodV, stateV, numberV, complementV, contactsV, childrenV, classificationV, observationsV]
       );
 
       if(vreturn && vreturn['ok']){
@@ -609,16 +632,16 @@ export default {
         this.$root.renderMsg('ok', 'Sucesso!', 'Cliente cadastrado.', function () { self.$router.go(); });
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, ['Nome já utilizado!', 'Cliente não econtrado!', 'Cpf já utilizado!', 
-          'Um dos contatos associados não possui o tipo', 'Um dos contatos associados está sem o valor', 'Uma das crianças associadas não possui o nome', 
+        this.$root.renderRequestErrorMsg(vreturn, ['Nome já utilizado!', 'Cliente não econtrado!', 'Cpf já utilizado!', 'Classificação inválida',
+          'Um dos contatos associados não possui o tipo', 'Um dos contatos associados está sem o valor', 'Uma das crianças associadas não possui o nome',
           'Uma das crianças associadas não possui o aniversário', 'Uma das crianças associadas não possui o tamanho de produtos']);
       }
     },
     cleanFields(){
-
       this.$refs.nameInput.setV('');
       this.$refs.birthInput.setV('');
       this.$refs.cpfInput.setV('');
+      this.$refs.classSelect.setV('Normal');
       this.$refs.genderSelect.setV('');
       this.$refs.cepInput.setV('');
       this.$refs.adressInput.setV('');
@@ -629,6 +652,7 @@ export default {
       this.$refs.complementInput.setV('');
       this.tableContactItems['content'] = [];
       this.tableChildrenItems['content'] = [];
+      this.addContact(true);
     }
   }
 }
@@ -687,20 +711,26 @@ export default {
   .pageSectionRow{
     margin: 10px 20px;
   }
-  .topRowLeft, .topRowRight, .midRow1Left, .midRow1Right, .midRow2Left, .midRow2Center, .midRow2Right, .midRow3Left, .midRow3Right{
+  .topRow1Left, .topRow2Left, .topRow1Right, .topRow2Center, .topRow2Right, .midRow1Left, .midRow1Right, .midRow2Left, .midRow2Center, .midRow2Right, .midRow3Left, .midRow3Right{
     display: inline-block;
   }
-  .topRowLeft, .midRow1Left, .midRow2Left, .midRow3Left{
+  .topRow1Left, .topRow2Left, .midRow1Left, .midRow2Left, .midRow3Left{
     text-align: left;
   }
-  .midRow2Center, .midRow2Right{
+  .topRow2Center, .midRow2Center, .midRow2Right{
     text-align: center;
   }
-  .topRowRight, .midRow1Right, .midRow3Right{
+  .topRow1Right, .topRow2Right, .midRow1Right, .midRow3Right{
     text-align: right;
   }
-  .topRowLeft, .topRowRight{
+  .topRow1Left, .topRow1Right{
     width: 50%;
+  }
+  .topRow2Left, .topRow2Right{
+    width: 30%;
+  }
+  .topRow2Center{
+    width: 40%;
   }
   .midRow1Left{
     width: 40%;
@@ -733,12 +763,12 @@ export default {
   .nameInput{
     width: calc(100% - 80px);
   }
-  .birthInput, .genderSelect{
-    width: calc(80% - 180px);
+  .birthInput, .classSelect, .genderSelect{
+    width: 160px;
     text-align: center;
   }
   .cpfInput{
-    width: calc(70% - 80px);
+    width: calc(90% - 80px);
   }
   .cepInput{
     width: calc(60% - 80px);
