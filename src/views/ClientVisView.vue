@@ -41,17 +41,33 @@
       </div>
 
       <div class="clientFiltersRow">
-        <LabelC for="classSelect"
-          labelText="Classificação"
-          class="ilabel"
-        />
-        <SelectC id="classSelect"
-          ref="classSelect"
-          class="classSelect"
-          name="classification"
-          colorClass="pink3"
-          :items="this.classSelectI"
-        />
+        <div class="classSelectWrapper">
+          <LabelC for="classSelect"
+            labelText="Classificação"
+            class="ilabel"
+          />
+          <SelectC id="classSelect"
+            ref="classSelect"
+            class="classSelect"
+            name="classification"
+            colorClass="pink3"
+            :items="this.classSelectI"
+          />
+        </div>
+
+        <div class="whatsappInputWrapper">
+          <LabelC for="whatsappInput"
+            labelText="Whatsapp"
+            class="ilabel"
+          />
+          <InputC id="whatsappInput"
+            ref="whatsappInput"
+            class="whatsappInput"
+            type="text"
+            name="whatsapp"
+            :mask="['(##) ####-####', '(##) #####-####']"
+          />
+        </div>
       </div>
 
       <div class="clientFiltersRow">
@@ -197,8 +213,8 @@ export default {
     return {
       clientIds: [],
       tableClients: {
-        'titles': [ 'Nome', 'Data ultima compra', 'Valor ultima compra', 'Nomes(Filhos)', 'Aniversário(Filhos)', 'Classificação', 'Editar' ],
-        'colTypes': [ 'string', 'string', 'string', 'string-list', 'string-list', 'string', 'edit' ],
+        'titles': [ 'Nome', 'Data ultima compra', 'Valor ultima compra', 'Nomes(Filhos)', 'WhatsApp', 'Classificação', 'Editar' ],
+        'colTypes': [ 'string', 'string', 'string', 'string-list', 'string', 'string', 'edit' ],
         'colWidths': [ '20%', '15%', '15%', '20%', '15%', '10%', '5%' ],
         'content': []
       },
@@ -229,6 +245,7 @@ export default {
       clientName: '',
       childName: '',
       clientClassification: '',
+      clientWhatsapp: '',
       birthStartDayMonth: '',
       birthEndDayMonth: '',
       lastBuyStartT: '',
@@ -243,14 +260,14 @@ export default {
 
   methods:{
 
-    async loadClients(limit, offset, clientName=null, childrenName=null, clientClassification=null, startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null){
+    async loadClients(limit, offset, clientName=null, childrenName=null, clientClassification=null, clientWhatsapp=null, startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null){
 
       this.clientIds = [];
       this.tableClients['content'] = [];
 
       let vreturn = await this.$root.doRequest(
         Requests.getClients,
-        [ false, limit, offset, clientName, childrenName, clientClassification, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
+        [ false, limit, offset, clientName, childrenName, clientClassification, clientWhatsapp, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['clients']){
@@ -262,10 +279,8 @@ export default {
             client['last_sale_date'] ? client['last_sale_date'] : '---',
             Utils.getCurrencyFormat(client['last_sale_total_value']),
             client['children'] && client['children'].length > 0 ? client['children'].map(x => x['children_name']) : ['---'],
-            client['children'] && client['children'].length > 0 ? 
-              client['children'].map(x => (x['children_birth_date'] && x['children_birth_date'].length > 0 ? Utils.getDateString( x['children_birth_date']) : '---' )): 
-              ['---'],
-              client['client_classification'],
+            client['contacts'].find(x => x['contact_type'] == 'W') ? client['contacts'].find(x => x['contact_type'] == 'W')['contact_value'] : '---',
+            client['client_classification'],
             { 'showEdit': true }]);
         });
 
@@ -275,6 +290,7 @@ export default {
         this.clientName = clientName;
         this.childName = childrenName;
         this.clientClassification = clientClassification;
+        this.clientWhatsapp = clientWhatsapp;
 
         this.birthStartDayMonth = startChildrenBirthDayMonth;
         this.birthEndDayMonth = endChildrenBirthDayMonth;
@@ -292,6 +308,7 @@ export default {
       let clientName = this.$refs.nameInput.getV();
       let childName = this.$refs.childnameInput.getV();
       let clientClassification = this.$refs.classSelect.getV();
+      let clientWhatsapp = this.$refs.whatsappInput.getV();
       let birthStartDay = this.$refs.birthStartDayInput.getV();
       let birthStartMonth = this.$refs.birthStartMonthInput.getV();
       let birthEndDay = this.$refs.birthEndDayInput.getV();
@@ -302,7 +319,7 @@ export default {
       let birthStartDayMonth = birthStartMonth && birthStartDay ? String(birthStartMonth) + '-' + String(birthStartDay) : null;
       let birthEndDayMonth = birthEndMonth && birthEndDay ? String(birthEndMonth) + '-' + String(birthEndDay) : null;
 
-      await this.loadClients(this.defLimit, 0, clientName, childName, clientClassification, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
+      await this.loadClients(this.defLimit, 0, clientName, childName, clientClassification, clientWhatsapp, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
     },
 
     async cleanFilter(){
@@ -310,6 +327,7 @@ export default {
       this.$refs.nameInput.setV('');
       this.$refs.childnameInput.setV('');
       this.$refs.classSelect.setV('');
+      this.$refs.whatsappInput.setV('');
       this.$refs.birthStartDayInput.setV('');
       this.$refs.birthStartMonthInput.setV('');
       this.$refs.birthEndDayInput.setV('');
@@ -328,6 +346,7 @@ export default {
         this.clientName,
         this.childName,
         this.clientClassification,
+        this.clientWhatsapp,
         this.birthStartDayMonth,
         this.birthEndDayMonth,
         this.lastBuyStartT,
@@ -342,6 +361,7 @@ export default {
         this.clientName,
         this.childName,
         this.clientClassification,
+        this.clientWhatsapp,
         this.birthStartDayMonth,
         this.birthEndDayMonth,
         this.lastBuyStartT,
@@ -379,14 +399,14 @@ export default {
   margin-left: 20px;
 }
 @media (min-width: 1201px) {
-  .nameInputWrapper, .childNameInputWrapper{
+  .nameInputWrapper, .childNameInputWrapper, .classSelectWrapper, .whatsappInputWrapper{
     display: inline-block;
     width: 50%;
   }
-  .nameInputWrapper{
+  .nameInputWrapper, .classSelectWrapper{
     text-align: left;
   }
-  .childNameInputWrapper{
+  .childNameInputWrapper, .whatsappInputWrapper{
     text-align: right;
   }
   .nameInput, .childnameInput{
@@ -412,7 +432,7 @@ export default {
   }
 }
 @media (max-width: 1200px) {
-  .clientFiltersRow > *, .nameInputWrapper > *, .childNameInputWrapper > *{
+  .clientFiltersRow > *, .nameInputWrapper > *, .childNameInputWrapper > *, .classSelectWrapper > *, .whatsappInputWrapper > *{
     width: 100%;
     margin-left: 0px;
   }

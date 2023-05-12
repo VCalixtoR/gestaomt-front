@@ -350,10 +350,11 @@ async function getClients(token_jwt, args){
     'client_name': args[3],
     'children_name': args[4],
     'client_classification': args[5],
-    'children_birth_month_day_start': args[6],
-    'children_birth_month_day_end': args[7],
-    'last_sale_date_start': args[8],
-    'last_sale_date_end': args[9]
+    'client_whatsapp': args[6],
+    'children_birth_month_day_start': args[7],
+    'children_birth_month_day_end': args[8],
+    'last_sale_date_start': args[9],
+    'last_sale_date_end': args[10]
   });
 
   let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`);
