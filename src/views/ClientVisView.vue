@@ -220,7 +220,7 @@ export default {
       },
       classSelectI: [
         { label: '---' , value: '' },
-        { label: 'Normal', value: 'Normal' },
+        { label: 'Ruim', value: 'Ruim' },
         { label: 'Boa', value: 'Boa' },
         { label: 'Excelente', value: 'Excelente' }
       ],

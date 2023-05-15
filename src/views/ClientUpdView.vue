@@ -350,7 +350,7 @@ export default {
     return {
       loadedClient: null,
       classSelectI: [
-        { label: 'Normal', value: 'Normal' },
+        { label: 'Ruim', value: 'Ruim' },
         { label: 'Boa', value: 'Boa' },
         { label: 'Excelente', value: 'Excelente' }
       ],

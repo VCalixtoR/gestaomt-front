@@ -337,7 +337,7 @@ export default {
   data() {
     return {
       classSelectI: [
-        { label: 'Normal', value: 'Normal' },
+        { label: 'Ruim', value: 'Ruim' },
         { label: 'Boa', value: 'Boa' },
         { label: 'Excelente', value: 'Excelente' }
       ],
@@ -641,7 +641,7 @@ export default {
       this.$refs.nameInput.setV('');
       this.$refs.birthInput.setV('');
       this.$refs.cpfInput.setV('');
-      this.$refs.classSelect.setV('Normal');
+      this.$refs.classSelect.setV('Ruim');
       this.$refs.genderSelect.setV('');
       this.$refs.cepInput.setV('');
       this.$refs.adressInput.setV('');
