@@ -9,7 +9,7 @@
       </TextC>
 
       <div class="pageSectionRow">
-        <div class="rowHalf colLeft">
+        <div class="rowTopLeft">
           <LabelC for="nameInput"
             labelText="Nome"
             class="plabel leftLabel"
@@ -24,7 +24,7 @@
           />
         </div>
 
-        <div class="rowHalf colRight">
+        <div class="rowTopMid">
           <LabelC for="codeInput"
             labelText="Código"
             class="plabel"
@@ -36,6 +36,20 @@
             type="text"
             name="code"
             maxlength="20"
+          />
+        </div>
+
+        <div class="rowTopRight">
+          <LabelC for="idInput"
+            labelText="Id de cadastro"
+            class="plabel"
+          />
+          <InputC id="idInput"
+            ref="idInput"
+            class="pinput idInput"
+            type="text"
+            name="prodid"
+            disabled
           />
         </div>
       </div>
@@ -177,25 +191,25 @@
     </div>
 
     <div class="buttonsWrapper">
-      <div class="buttonSaveWrapper">
+      <div class="buttonUpdateWrapper">
         <ButtonC colorClass="pink3"
-          :id="'btnsaveButton'"
+          :id="'updateButton'"
           class="btnP"
-          label="Salvar"
+          label="Salvar edição"
           width="100%"
           padding="3px 0px"
-          @click="this.save()"
+          @click="this.update()"
         />
       </div>
 
-      <div class="buttonCleanWrapper">
+      <div class="buttonRestoreWrapper">
         <ButtonC colorClass="black1"
-          :id="'btnCleanFields'"
+          :id="'btnRestoreFields'"
           class="btnP"
-          label="Limpar"
+          label="Restaurar"
           width="100%"
           padding="3px 0px"
-          @click="this.cleanFields()"
+          @click="this.restoreFields()"
         />
       </div>
     </div>
@@ -219,7 +233,7 @@ import Utils from '../js/utils'
 
 export default {
   
-  name: 'ProductCreView',
+  name: 'ProductUpdView',
 
   components: {
     ButtonC,
@@ -234,6 +248,8 @@ export default {
 
   data() {
     return {
+      productId: '',
+      productCode: '',
       collectionSelectItems: [],
       typeSelectItems: [],
       sizeSelectItems: [],
@@ -262,7 +278,13 @@ export default {
   },
 
   async created() {
-    this.$root.setPageLoggedName('Cadastro de Produtos');
+    this.$root.setPageLoggedName('Edição de Produtos');
+
+    if(!this.$root.pageParams || !this.$root.pageParams['product_code']){
+      this.$root.renderView('home');
+      return;
+    }
+    this.productCode = this.$root.pageParams['product_code'];
 
     let vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
 
@@ -280,36 +302,74 @@ export default {
     }
 
     this.createdDone = true;
-    this.updateTbls(true);
+    await this.loadTbls();
   },
 
   methods:{
 
-    updateTbls(initial=false){
+    async loadTbls(){
+
+      let vreturn = await this.$root.doRequest( Requests.getProduct, [this.productCode] );
+      
+      if(!vreturn || !vreturn['ok'] || !vreturn['response']){
+        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderView('home');
+      }
+      let productData = vreturn['response'];
+      this.productId = productData['product_id'];
+      console.log(productData);
+      
+      // set name, code and id
+      this.$refs.nameInput.setV(productData['product_name']);
+      this.$refs.codeInput.setV(productData['product_code']);
+      this.$refs.idInput.setV(`PROD-${productData['product_id']}`);
+      
+      // sets types and collections
+      this.$refs.typeSelect.setV(productData['types'], true);
+      this.$refs.collectionSelect.setV(productData['collections'], true);
+      
+      // sets sizes, colors and others
+      let sizeNamesTmp = [];
+      let colorNamesTmp = [];
+      let otherNamesTmp = [];
+      productData['customized_products'].forEach((customP) => {
+        if(!sizeNamesTmp.includes(customP['product_size_name'])){
+          sizeNamesTmp.push(customP['product_size_name']);
+        }
+        if(customP['product_color_name'] && !colorNamesTmp.includes(customP['product_color_name'])){
+          colorNamesTmp.push(customP['product_color_name']);
+        }
+        if(customP['product_other_name'] && !otherNamesTmp.includes(customP['product_other_name'])){
+          otherNamesTmp.push(customP['product_other_name']);
+        }
+      });
+      this.$refs.sizeSelect.setV(sizeNamesTmp, true);
+      this.$refs.colorSelect.setV(colorNamesTmp, true);
+      this.$refs.othersSelect.setV(otherNamesTmp, true);
+
+      // add product data
+      this.tblPriceStock['content'] = [];
+      for(let i = 0; i < productData['customized_products'].length; i++){
+        let product = productData['customized_products'][i];
+        this.addtblPriceStock(
+          {'label': product['product_size_name']},
+          {'label': product['product_color_name']},
+          {'label': product['product_other_name']},
+          {'label': String(product['product_price'])},
+          {'label': String(product['product_quantity'])}
+        );
+      }
+      this.tblPriceStockKey = this.tblPriceStockKey + 1;
+    },
+    updateTbls(){
       
       // copy old array
       let oldContent = this.$refs.tblPriceStock ? this.$refs.tblPriceStock.getV() : null;
-      let sizeSelectV = [];
-      let colorSelectV = [];
-      let othersSelectV = [];
-
-      if(initial){
-        sizeSelectV = [
-          this.sizeSelectItems.find(x => x['label'] == '32'),
-          this.sizeSelectItems.find(x => x['label'] == '34'),
-          this.sizeSelectItems.find(x => x['label'] == '36'),
-          this.sizeSelectItems.find(x => x['label'] == '38'),
-          this.sizeSelectItems.find(x => x['label'] == '40'),
-          this.sizeSelectItems.find(x => x['label'] == '42')
-        ]
-      }
-      else{
-        sizeSelectV = this.$refs.sizeSelect.getV(true);
-        colorSelectV = this.$refs.colorSelect.getV(true);
-        othersSelectV = this.$refs.othersSelect.getV(true);
-      }
-
-      this.tblPriceStock['content'] = []
+      let sizeSelectV = this.$refs.sizeSelect.getV(true);
+      let colorSelectV = this.$refs.colorSelect.getV(true);
+      let othersSelectV = this.$refs.othersSelect.getV(true);
+      
+      this.tblPriceStock['content'] = [];
       for(let i = 0; i < sizeSelectV.length; i++){
 
         if(colorSelectV && colorSelectV.length > 0){
@@ -317,43 +377,42 @@ export default {
 
             if(othersSelectV && othersSelectV.length > 0){
               for(let k = 0; k < othersSelectV.length; k++){
-                this.addtblPriceStock(sizeSelectV[i], colorSelectV[j], othersSelectV[k], oldContent);
+                this.addtblPriceStock(sizeSelectV[i], colorSelectV[j], othersSelectV[k], null, null, oldContent);
               }
             }
             else{
-              this.addtblPriceStock(sizeSelectV[i], colorSelectV[j], null, oldContent);
+              this.addtblPriceStock(sizeSelectV[i], colorSelectV[j], null, null, null, oldContent);
             }
           }
         }
         else if(othersSelectV && othersSelectV.length > 0){
           for(let k = 0; k < othersSelectV.length; k++){
-            this.addtblPriceStock(sizeSelectV[i], null, othersSelectV[k], oldContent);
+            this.addtblPriceStock(sizeSelectV[i], null, othersSelectV[k], null, null, oldContent);
           }
         }
         else{
-          this.addtblPriceStock(sizeSelectV[i], null, null, oldContent);
+          this.addtblPriceStock(sizeSelectV[i], null, null, null, null, oldContent);
         }
       }
       this.tblPriceStockKey = this.tblPriceStockKey + 1;
     },
-    addtblPriceStock(size, color, other, oldContentValues=null){
+    addtblPriceStock(size, color, other, price=null, quantity=null, oldContentValues=null){
 
       let priceQuantity = null;
       if(oldContentValues){
         priceQuantity = this.getOldPriceQuantity(oldContentValues, size['label'], color ? color['label'] : null, other ? other['label'] : null);
+        console.log(priceQuantity);
       }
-      console.log(oldContentValues);
 
       this.tblPriceStock['content'].push([
         size['label'],
         color ? color['label'] : '---',
         other ? other['label'] : '---',
-        { 
-          'type': 'text',
+        { 'type': 'text', 
           'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ],
-          'value': (priceQuantity ? priceQuantity['price'] : 'R$ ')
+          'value': (price ? Utils.getCurrencyFormat(Number(price['label'])) : (priceQuantity ? priceQuantity['price'] : 'R$ '))
         },
-        { 'type': 'text', 'mask': '####', 'value': (priceQuantity ? priceQuantity['quantity'] : 0) },
+        { 'type': 'text', 'mask': '####', 'value': (quantity ? Number(quantity['label']) : (priceQuantity ? priceQuantity['quantity'] : 0)) },
         ''
       ]);
     },
@@ -399,7 +458,7 @@ export default {
         });
       }
     },
-    async save(){
+    async update(){
       
       let nameInputV = this.$refs.nameInput.getV();
       let codeInputV = this.$refs.codeInput.getV();
@@ -478,18 +537,20 @@ export default {
       }
 
       let vreturn = await this.$root.doRequest(
-        Requests.createProduct,
-        [codeInputV, nameInputV, collectionSelectIds, typeSelectIds, parsedCustomProducts, observationsV]
+        Requests.updateProduct,
+        [this.productId, codeInputV, nameInputV, collectionSelectIds, typeSelectIds, parsedCustomProducts, observationsV]
       );
 
       if(vreturn && vreturn['ok']){
         let self = this;
-        this.$root.renderMsg('ok', 'Sucesso!', 'Produtos cadastrados.', function () { self.$router.go(); });
+        this.$root.renderMsg('ok', 'Sucesso!', 'Produtos atualizados.', function () { self.$router.go(); });
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, [
+          'Id do produto a ser atualizado inválido',
           'Existe um produto ativo com o mesmo código, escolha um novo código ou desative o outro produto',
           'Existe um produto ativo com o mesmo nome, escolha um novo nome ou desative o outro produto',
+          'Produtos customizados inexistentes',
           'Produtos customizaveis inválidos',
           'Existe duplicatas nos produtos',
           'Preço do produto inválido para uma das variações',
@@ -498,16 +559,16 @@ export default {
         ]);
       }
     },
-    cleanFields(){
+    restoreFields(){
       this.$refs.nameInput.setV('');
       this.$refs.codeInput.setV('');
       this.$refs.typeSelect.setV('');
       this.$refs.collectionSelect.setV('');
-      this.$refs.sizeSelect.setV(['32', '34', '36', '38', '40', '42'], true);
+      this.$refs.sizeSelect.setV('');
       this.$refs.colorSelect.setV('');
       this.$refs.othersSelect.setV('');
 
-      this.updateTbls(true);
+      this.loadTbls();
       this.$refs.tblBatchChange.setV(0, 1, '');
       this.$refs.tblBatchChange.setV(1, 1, '');
     }
@@ -546,7 +607,7 @@ export default {
     text-align: center;
     width: 100%;
   }
-  .buttonSaveWrapper, .buttonCleanWrapper{
+  .buttonUpdateWrapper, .buttonRestoreWrapper{
     width: 80%;
     display: inline-block;
     margin: 10px;
@@ -566,11 +627,23 @@ export default {
     padding: 0px;
     width: 50%;
   }
-  .colLeft{
+  .colLeft, .rowTopLeft{
     text-align: left;
   }
-  .colRight{
+  .rowTopMid{
+    text-align: center;
+  }
+  .colRight, .rowTopRight{
     text-align: right;
+  }
+  .rowTopLeft, .rowTopMid, .rowTopRight{
+    display: inline-block;
+  }
+  .rowTopLeft{
+    width: 40%;
+  }
+  .rowTopMid, .rowTopRight{
+    width: 30%;
   }
   .plabel{
     display: inline-block;
@@ -583,8 +656,8 @@ export default {
   .nameInput, .typeSelect, .collectionSelect, .sizeSelect, .colorSelect, .othersSelect{
     width: calc(95% - 115px);
   }
-  .codeInput{
-    width: 220px;
+  .codeInput, .idInput{
+    width: 40%;
   }
   .tblsWrapper{
     width: 100%;
@@ -610,14 +683,14 @@ export default {
     text-align: left;
     width: 100%;
   }
-  .buttonSaveWrapper, .buttonCleanWrapper{
+  .buttonUpdateWrapper, .buttonRestoreWrapper{
     display: inline-block;
     margin-left: 20px;
   }
-  .buttonSaveWrapper{
+  .buttonUpdateWrapper{
     width: 30%;
   }
-  .buttonCleanWrapper{
+  .buttonRestoreWrapper{
     width: 20%;
   }
 }

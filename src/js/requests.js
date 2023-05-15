@@ -502,6 +502,35 @@ async function getProduct(token_jwt, args){
   return vreturn;
 }
 
+async function updateProduct(token_jwt, args){
+
+  var jsonBody = {};
+  jsonBody['product_id'] = args[0];
+  jsonBody['product_code'] = args[1];
+  jsonBody['product_name'] = args[2];
+  if(args[3])
+    jsonBody['product_collection_ids'] = args[3];
+  if(args[4])
+    jsonBody['product_type_ids'] = args[4];
+  jsonBody['customized_products'] = args[5];
+  if(args[6])
+    jsonBody['product_observations'] = args[6];
+  
+  var myHeaders = {
+    method: 'PATCH',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(jsonBody)
+  }
+  
+  console.log(jsonBody);
+  let vreturn = await baseRequestFBody(myHeaders, `product`);
+  return vreturn;
+}
+
 async function getProducts(token_jwt, args){
 
   let limit = args[0];
@@ -769,6 +798,7 @@ export default{
   updateClient,
   createProduct,
   getProduct,
+  updateProduct,
   getProducts,
   getProductInfo,
   createConditional,

@@ -251,7 +251,7 @@ export default {
 
   data() {
     return {
-      productIds: [],
+      productCodes: [],
       tableProducts: {
         'titles': [ 'Código', 'Nome', 'Tipos', 'Estoque e Preço', 'Editar' ],
         'colTypes': [ 'string', 'string', 'string-list', 'string-list', 'edit' ],
@@ -320,7 +320,7 @@ export default {
     async loadProducts(limit, offset, code=null, name=null, colorId=null, otherId=null, sizeId=null, collectionId=null, typeId=null,  
       quantityStart=null, quantityEnd=null, priceStart=null, priceEnd=null){
 
-      this.productIds = [];
+      this.productCodes = [];
       this.tableProducts['content'] = [];
 
       let vreturn = await this.$root.doRequest(
@@ -332,7 +332,7 @@ export default {
 
         vreturn['response']['products'].forEach(product => {
 
-          this.productIds.push(product['product_id']);
+          this.productCodes.push(product['product_code']);
 
           // splits before to avoid splitting in map several times
           // size
@@ -471,8 +471,7 @@ export default {
     },
 
     editProduct(rowNumber){
-      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
-      //this.$root.renderView('alterarproduto', { 'product_id' : this.productIds[rowNumber] });
+      this.$root.renderView('alterarproduto', { 'product_code' : this.productCodes[rowNumber] });
     }
   }
 }
