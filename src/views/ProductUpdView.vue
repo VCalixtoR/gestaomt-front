@@ -346,6 +346,9 @@ export default {
       this.$refs.colorSelect.setV(colorNamesTmp, true);
       this.$refs.othersSelect.setV(otherNamesTmp, true);
 
+      // set product observations
+      this.$refs.textAreaObservations.setV(productData['product_observations']);
+
       // add product data
       this.tblPriceStock['content'] = [];
       for(let i = 0; i < productData['customized_products'].length; i++){
