@@ -342,7 +342,6 @@ export default {
       if(oldContentValues){
         priceQuantity = this.getOldPriceQuantity(oldContentValues, size['label'], color ? color['label'] : null, other ? other['label'] : null);
       }
-      console.log(oldContentValues);
 
       this.tblPriceStock['content'].push([
         size['label'],

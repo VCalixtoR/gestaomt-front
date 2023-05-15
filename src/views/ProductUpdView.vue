@@ -317,7 +317,6 @@ export default {
       }
       let productData = vreturn['response'];
       this.productId = productData['product_id'];
-      console.log(productData);
       
       // set name, code and id
       this.$refs.nameInput.setV(productData['product_name']);
@@ -401,7 +400,6 @@ export default {
       let priceQuantity = null;
       if(oldContentValues){
         priceQuantity = this.getOldPriceQuantity(oldContentValues, size['label'], color ? color['label'] : null, other ? other['label'] : null);
-        console.log(priceQuantity);
       }
 
       this.tblPriceStock['content'].push([
