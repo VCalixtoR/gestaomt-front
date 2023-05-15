@@ -101,6 +101,7 @@
               :placeholder="content['placeholder'] ? content['placeholder'] : '' "
               :autocomplete="content['autocomplete'] ? content['autocomplete'] : 'off' "
               display='inline-block'
+              @inputChange="(itemValue) => this.$emit('inputChange', itemValue, indexCR, indexC)"
               :style="{
                 'width': '100%'
               }"
@@ -237,6 +238,7 @@
               :placeholder="content['placeholder'] ? content['placeholder'] : '' "
               :autocomplete="content['autocomplete'] ? content['autocomplete'] : 'off' "
               display='inline-block'
+              @inputChange="(itemValue) => this.$emit('inputChange', itemValue, indexCR, indexC)"
               :style="{
                 'width': this.tableData['single-title'] ? '100%' : this.calcInputWidthOnMobile(this.tableData['titles'][indexC])
               }"

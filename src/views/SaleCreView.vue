@@ -225,6 +225,7 @@
               class="tableSale"
               :tableData="this.tableSaleData"
               @optClicked="(optValue, rowN, colN) => this.updateSaleTable(optValue, rowN, colN)"
+              @inputChange="(inputValue, rowN, colN) => this.updateSaleTable(inputValue, rowN, colN)"
             />
           </div>
           
@@ -304,12 +305,12 @@ export default {
       },
       tableSaleData: {
         'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento', 'Parcelas' ],
-        'colTypes': [ 'string', 'select', 'string', 'string', 'string', 'select', 'select' ],
+        'colTypes': [ 'string', 'input', 'input', 'string', 'string', 'select', 'select' ],
         'colWidths': [ '12%', '13%', '12%', '15%', '15%', '18%', '15%' ],
         'content': [[
           '---',
-          { 'initialOptValue': "0", 'items': [{ label: '0%', value: 0 }, { label: '5%', value: 0.05 }, { label: '10%', value: 0.10 }, { label: '15%', value: 0.15 }] },
-          'R$ 00,0',
+          { 'type': 'text', 'mask': ['#%', '##%'], value: '0%' },
+          { 'type': 'text', 'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##' ], value: 'R$ ' },
           'R$ 00,0',
           'R$ 00,0',
           { 'initialOptValue': "0", 'items': [{ label: '---', value: '0' }] },
@@ -328,7 +329,8 @@ export default {
       loadedSaleInfo: null,
       saleCustomizedProducts: {},
       actualCustomizedProducts: null,
-      quantityDisabled: true
+      quantityDisabled: true,
+      stopNextSaleTableUpdate: false
     }
   },
 
@@ -620,7 +622,13 @@ export default {
         }
       });
     },
-    updateSaleTable(optValue = null, rowN = null, colN = null){
+    updateSaleTable(changeValue = null, rowN = null, colN = null){
+
+      if(this.stopNextSaleTableUpdate){
+        this.stopNextSaleTableUpdate = false;
+        return;
+      }
+
       let saleRow = this.tableSaleData['content'][0];
  
       // calculates total sale raw value
@@ -630,19 +638,41 @@ export default {
         let content = this.tableProductsData['content'][i];
         totalSaleRawValue += Utils.getNumberFormatFromCurrency(content[5]) * Number(content[6]);
       }
+      
+      let discountPercentRow = this.$refs.tableSale.getV(0, 1);
+      let discountValueRow = this.$refs.tableSale.getV(0, 2);
+      // changes in discount or value select
+      if(colN == 1 || colN == 2){
+        this.stopNextSaleTableUpdate = true;
 
-      saleRow[0] = `VENDA-${this.loadedSaleInfo['next_sale_id']}`;
-      // changes in discount select
-      if(colN == 1){
-        saleRow[1]['initialOptValue'] = optValue;
+        // avoids 100 or more percentages
+        if(colN == 1){
+          discountPercentRow = Number(changeValue.replace('%','')) >= 100 ? '99%' : changeValue;
+          discountValueRow = Utils.getCurrencyFormat(totalSaleRawValue > 0 ? Number(discountPercentRow.replace('%',''))*100/totalSaleRawValue : 0);
+        }
+        // avoid discounts equal to or greater than the raw sales value
+        else{
+          discountValueRow = Utils.getNumberFormatFromCurrency(changeValue) >= totalSaleRawValue ? Utils.getCurrencyFormat(totalSaleRawValue-1) : changeValue;
+          discountPercentRow = totalSaleRawValue > 0 ? 
+            String(Math.trunc((Utils.getNumberFormatFromCurrency(discountValueRow)*100)/totalSaleRawValue)) + '%' : 
+            '0%';
+        }
+
+        saleRow[1] = { 'type': 'text', 'mask': ['#%', '##%'], value: discountPercentRow },
+        saleRow[2] = { 
+          'type': 'text', 
+          'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##' ], 
+          value: discountValueRow
+        }
       }
-      saleRow[2] = Utils.getCurrencyFormat(totalSaleRawValue*this.$refs.tableSale.getV(0, 1));
+      saleRow[0] = `VENDA-${this.loadedSaleInfo['next_sale_id']}`;
       saleRow[3] = Utils.getCurrencyFormat(totalSaleRawValue);
-      totalSaleValue = totalSaleRawValue*(1-this.$refs.tableSale.getV(0, 1));
+      totalSaleValue = totalSaleRawValue - (discountValueRow ? Utils.getNumberFormatFromCurrency(discountValueRow) : 0);
       saleRow[4] = Utils.getCurrencyFormat(totalSaleValue);
+
       // changes payment method and set new installments
       if(colN == 5){
-        saleRow[5]['initialOptValue'] = optValue;
+        saleRow[5]['initialOptValue'] = changeValue;
         saleRow[6] = { 'initialOptValue': 1, 'items': [] };
         this.loadedSaleInfo['payment_methods'].forEach((payment) => {
           if(payment['payment_method_name'] == saleRow[5]['initialOptValue']){
@@ -652,7 +682,7 @@ export default {
       }
       // changes installment
       if(colN == 6){
-        saleRow[6]['initialOptValue'] = optValue;
+        saleRow[6]['initialOptValue'] = changeValue;
       }
       // sets installment labels
       let installmentTmp = [];
@@ -663,8 +693,6 @@ export default {
         });
       });
       saleRow[6]['items'] = installmentTmp;
-
-      this.saleKeyToReRender++;
     },
 
     async createSale(){

@@ -95,7 +95,10 @@ function getNumberFormatFromCurrency(currency){
   if(currency == null || currency == undefined || currency == ''){
     return null;
   }
-  return Number(currency.replace(/[^\d,]+/g, '').replace(',', '.'));
+  if(typeof currency === 'string') {
+    return Number(currency.replace(/[^\d,]+/g, '').replace(',', '.'));
+  }
+  return currency;
 }
 
 function getNameFormated(name){

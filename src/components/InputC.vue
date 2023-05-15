@@ -16,7 +16,7 @@
       'display': this.display
     }"
     v-mask="this.mask"
-    @input="$emit('onChangeAction')"
+    @input="$emit('inputChange', this.getV())"
   >
 
   <input v-else
@@ -35,7 +35,7 @@
       'display': this.display
     }"
     v-on:keypress="isLetter($event)"
-    @input="$emit('onChangeAction')"
+    @input="$emit('inputChange', this.getV())"
   >
 
 </template>
@@ -102,7 +102,7 @@ export default {
       }
     },
     getV(){
-      return this.$refs[this.id + '_IC'].value;
+      return this.$refs[this.id + '_IC'] ? this.$refs[this.id + '_IC'].value : null;
     },
     setV(value){
       this.$refs[this.id + '_IC'].value = value;
