@@ -152,9 +152,9 @@ export default {
       this.tableSaleData['content'] = [[
         `VEND-${saleData['sale_id']}`,
         `${Math.trunc(Number(saleData['sale_total_discount_percentage'])*100)}%`,
-        saleRawValue-saleData['sale_total_value'],
-        saleRawValue,
-        saleData['sale_total_value'],
+        Utils.getCurrencyFormat(saleRawValue-saleData['sale_total_value']),
+        Utils.getCurrencyFormat(saleRawValue),
+        Utils.getCurrencyFormat(saleData['sale_total_value']),
         saleData['payment_method_name'],
         `${saleData['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(saleData['sale_total_value']/Number(saleData['payment_method_Installment_number']))}`
       ]];
@@ -167,7 +167,7 @@ export default {
           p['product_size_name'],
           p['product_color_name'] ? p['product_color_name'] : '---',
           p['product_other_name'] ? p['product_other_name'] : '---',
-          p['sale_has_product_price'],
+          Utils.getCurrencyFormat(p['sale_has_product_price']),
           p['sale_has_product_quantity']
         ]);
       });
