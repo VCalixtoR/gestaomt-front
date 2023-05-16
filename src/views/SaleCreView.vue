@@ -225,7 +225,7 @@
               class="tableSale"
               :tableData="this.tableSaleData"
               @optClicked="(optValue, rowN, colN) => this.updateSaleTable(optValue, rowN, colN)"
-              @inputChange="(inputValue, rowN, colN) => this.updateSaleTable(inputValue, rowN, colN)"
+              @tableInputChange="(inputValue, rowN, colN) => this.updateSaleTable(inputValue, rowN, colN)"
             />
           </div>
           
@@ -330,7 +330,8 @@ export default {
       saleCustomizedProducts: {},
       actualCustomizedProducts: null,
       quantityDisabled: true,
-      stopNextSaleTableUpdate: false
+      stopNextCol1Update: false,
+      stopNextCol2Update: false
     }
   },
 
@@ -624,8 +625,13 @@ export default {
     },
     updateSaleTable(changeValue = null, rowN = null, colN = null){
 
-      if(this.stopNextSaleTableUpdate){
-        this.stopNextSaleTableUpdate = false;
+      // stops updates from percent and price to avoid loops
+      if(this.stopNextCol1Update && colN == 1){
+        this.stopNextCol1Update = false;
+        return;
+      }
+      if(this.stopNextCol2Update && colN == 2){
+        this.stopNextCol2Update = false;
         return;
       }
 
@@ -643,12 +649,11 @@ export default {
       let discountValueRow = this.$refs.tableSale.getV(0, 2);
       // changes in discount or value select
       if(colN == 1 || colN == 2){
-        this.stopNextSaleTableUpdate = true;
 
         // avoids 100 or more percentages
         if(colN == 1){
           discountPercentRow = Number(changeValue.replace('%','')) >= 100 ? '99%' : changeValue;
-          discountValueRow = Utils.getCurrencyFormat(totalSaleRawValue > 0 ? Number(discountPercentRow.replace('%',''))*100/totalSaleRawValue : 0);
+          discountValueRow = Utils.getCurrencyFormat(totalSaleRawValue > 0 ? (totalSaleRawValue*Number(discountPercentRow.replace('%','')))/100 : 0);
         }
         // avoid discounts equal to or greater than the raw sales value
         else{
@@ -658,6 +663,8 @@ export default {
             '0%';
         }
 
+        this.stopNextCol1Update = true;
+        this.stopNextCol2Update = true;
         saleRow[1] = { 'type': 'text', 'mask': ['#%', '##%'], value: discountPercentRow },
         saleRow[2] = { 
           'type': 'text', 
