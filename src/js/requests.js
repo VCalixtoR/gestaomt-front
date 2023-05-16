@@ -526,6 +526,7 @@ async function updateProduct(token_jwt, args){
     body: JSON.stringify(jsonBody)
   }
   
+  console.log(jsonBody);
   let vreturn = await baseRequestFBody(myHeaders, `product`);
   return vreturn;
 }

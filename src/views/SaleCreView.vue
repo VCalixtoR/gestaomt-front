@@ -712,7 +712,7 @@ export default {
       let methodInstallmentId = this.loadedSaleInfo['payment_methods'].find(payment => 
         payment['payment_method_name'] == this.$refs.tableSale.getV(0, 5) && payment['payment_method_Installment_number'] == this.$refs.tableSale.getV(0, 6)
       )['payment_method_installment_id'];
-      let discountPercentage = this.$refs.tableSale.getV(0, 1);
+      let discountPercentage = this.$refs.tableSale.getV(0, 1) ? (Number(this.$refs.tableSale.getV(0, 1).replace('%',''))/100) : null;
       let totalValue = Utils.getNumberFormatFromCurrency(this.$refs.tableSale.getV(0, 4));
 
       if(clientId == null || clientId == undefined){
