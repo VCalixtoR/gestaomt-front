@@ -355,8 +355,8 @@ export default {
         let product = productData['customized_products'][i];
         this.addtblPriceStock(
           {'label': product['product_size_name']},
-          {'label': product['product_color_name']},
-          {'label': product['product_other_name']},
+          {'label': product['product_color_name'] ? product['product_color_name'] : '---'},
+          {'label': product['product_other_name'] ? product['product_other_name'] : '---'},
           {'label': String(product['product_price'])},
           {'label': String(product['product_quantity'])}
         );
