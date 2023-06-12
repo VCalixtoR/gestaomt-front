@@ -755,6 +755,25 @@ async function getSaleInfo(token_jwt, _){
   return vreturn;
 }
 
+async function cancelSale(token_jwt, args){
+
+  var jsonBody = {};
+  jsonBody['sale_id'] = args[0];
+  
+  var myHeaders = {
+    method: 'DELETE',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Authorization': `Bearer ${token_jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(jsonBody)
+  }
+  
+  let vreturn = await baseRequestFBody(myHeaders, `sale`);
+  return vreturn;
+}
+
 async function getEvents(token_jwt, args){
 
   let limit = args[0];
@@ -810,5 +829,6 @@ export default{
   getSale,
   getSales,
   getSaleInfo,
+  cancelSale,
   getEvents
 }

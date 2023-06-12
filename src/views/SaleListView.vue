@@ -129,6 +129,7 @@
           :maxPages="this.maxPages"
           @previousClick="this.previousSalePage()"
           @nextClick="this.nextSalePage()"
+          @optClicked="(itemValue, indexCR, indexC) => this.changeSaleStatus(itemValue, indexCR)"
           @visualize="(rowN, colN) => this.visualizeSale(rowN)"
           @pdf="(rowN, colN) => this.generatePDF(rowN)"
         />
@@ -171,9 +172,9 @@ export default {
       cliNameSelectItems: [],
 
       tableSalesData: {
-        'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Visualizar', 'Gerar pdf' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'visualize', 'pdf' ],
-        'colWidths': [ '10%', '24%', '20%', '20%', '10%', '8%', '8%' ],
+        'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
+        'colWidths': [ '10%', '22%', '18%', '18%', '10%', '10%', '6%', '6%' ],
         'content': []
       },
 
@@ -237,6 +238,15 @@ export default {
             `${sale['payment_method_name']} (${sale['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(Number(sale['sale_total_value'])/Number(sale['payment_method_Installment_number']))})`,
             Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
             Utils.getCurrencyFormat(sale['sale_total_value']),
+            {
+              'disabled': sale['sale_status'] == 'Cancelado',
+              'customFontColor': (sale['sale_status'] == 'Cancelado' ? 'fontred' : null),
+              'initialOptValue': sale['sale_status'],
+              'items': [
+                { label: 'Confirmado', value: 'Confirmado' },
+                { label: 'Cancelado', value: 'Cancelado', color: 'red' }
+              ]
+            },
             { 'showVisualize': true },
             { 'showPdf': true }]);
         });
@@ -310,7 +320,35 @@ export default {
         this.creationDateTimeEnd,
         this.saleStatus,
         this.totalValueStart,
-        this.totalValueEnd)
+        this.totalValueEnd
+      );
+    },
+
+    async changeSaleStatus(statusValue, salePos){
+      
+      if(statusValue != 'Cancelado'){
+        return;
+      }
+
+      let vreturn = await this.$root.doRequest(Requests.cancelSale, [this.salesIds[salePos]]);
+
+      if(!vreturn || !vreturn['ok']){
+        this.$root.renderRequestErrorMsg(vreturn, ['A venda já está cancelada']);
+      }
+      else{
+        await this.loadSales( 
+          this.defLimit,
+          (this.actualPage-1)*10,
+          this.saleId,
+          this.clientName,
+          this.creationDateTimeStart,
+          this.creationDateTimeEnd,
+          this.saleStatus,
+          this.totalValueStart,
+          this.totalValueEnd
+        );
+        this.$root.renderMsg('ok', 'Venda cancelada!', '');
+      }
     },
 
     visualizeSale(salePos){
