@@ -74,10 +74,6 @@ export default {
     this.setJwtExpiresInterval();
     
     await this.setUserLogged();
-    if(this.userLoggedData != null){
-      this.$router.push({ name: 'home' });
-    }
-
     this.createdDone = true;
   },
 
@@ -89,7 +85,7 @@ export default {
   watch:{
     $route(to, from){
       let viewName = to.name;
-      if( (this.userLoggedData == null || ClientStorage.getJwtToken() == null) && viewName != 'login' && viewName != 'cadastro'){
+      if( this.createdDone && (this.userLoggedData == null || ClientStorage.getJwtToken() == null) && viewName != 'login' && viewName != 'cadastro'){
         this.$router.push({ name: 'login' });
       }
     }

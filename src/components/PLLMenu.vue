@@ -168,6 +168,7 @@ export default {
   mounted() {
     window.addEventListener('resize', this.verifyOnMobile);
     this.verifyOnMobile();
+    this.setItemSelectedOnStart();
   },
   unmounted() {
     window.removeEventListener('resize', this.verifyOnMobile);
@@ -181,7 +182,25 @@ export default {
     handleMouseOut(){
       this.showMenuOnMobile = false;
     },
-    setItemSelected(itemIndex){
+    setItemSelectedOnStart(){
+
+      let actualViewName = this.$route.name;
+
+      this.items.forEach( (item, itemIndex) => {
+        if(item.subItems.length == 0 && actualViewName == item['view']){
+          this.setItemSelected(itemIndex, false);
+        }
+        else{
+          item.subItems.forEach( (subitem, subitemIndex) => {
+            if(actualViewName == subitem['view']){
+              this.setSubItemSelected(itemIndex, subitemIndex, false);
+              this.items[itemIndex].subItemsShow = true;
+            }
+          });
+        }
+      });
+    },
+    setItemSelected(itemIndex, renderView = true){
 
       if(this.items[itemIndex].subItems.length == 0){
 
@@ -195,13 +214,15 @@ export default {
         this.itemSelected=itemIndex;
         this.items[this.itemSelected].iSelected = true;
 
-        this.renderView(itemIndex, null);
+        if(renderView){
+          this.renderView(itemIndex, null);
+        }
       }
       else{
         this.items[itemIndex].subItemsShow = !this.items[itemIndex].subItemsShow;
       }
     },
-    setSubItemSelected(itemIndex, subItemIndex){
+    setSubItemSelected(itemIndex, subItemIndex, renderView = true){
 
       this.items[this.itemSelected].iSelected = false;
       if(this.items[this.itemSelected].subItems.length > 0){
@@ -216,7 +237,9 @@ export default {
       this.items[this.itemSelected].iSelected = true;
       this.items[this.itemSelected].subItems[this.subItemSelected].sSelected = true;
 
-      this.renderView(itemIndex, subItemIndex);
+      if(renderView){
+        this.renderView(itemIndex, subItemIndex);
+      }
     },
     renderView(itemIndex, subItemIndex){
 
