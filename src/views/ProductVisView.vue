@@ -7,6 +7,9 @@
       <TextC colorClass="black1" fontSize='var(--text-title)'>
         Filtrar
       </TextC>
+      <TextC colorClass="pink" fontSize='var(--text-warn)' fontWeight="bold" v-if="this.filtered">
+        Atenção: Filtros aplicados
+      </TextC>
 
       <div class="filtersRow">
         <div class="filterColLeft">
@@ -306,6 +309,7 @@ export default {
 
       showColorsInProductName: true,
       showOthersInProductName: true,
+      filtered: false,
       mountedDone: false
     }
   },
@@ -348,8 +352,8 @@ export default {
       this.initialName = params['name'];
       this.initialStartQuantity = params['quantityStart'];
       this.initialEndQuantity = params['quantityEnd'];
-      this.initialStartPrice = Utils.getCurrencyFormat(params['priceStart']);
-      this.initialEndPrice = Utils.getCurrencyFormat(params['priceEnd']);
+      this.initialStartPrice = params['priceStart'] ? Utils.getCurrencyFormat(params['priceStart']) : null;
+      this.initialEndPrice = params['priceEnd'] ? Utils.getCurrencyFormat(params['priceEnd']) : null;
       this.initialColorSelectItem = params['colorId'];
       this.initialOtherSelectItem = params['otherId'];
       this.initialSizeSelectItem = params['sizeId'];
@@ -453,6 +457,25 @@ export default {
         this.quantityEnd = quantityEnd;
         this.priceStart = priceStart;
         this.priceEnd = priceEnd;
+
+        // checks if it was filtered
+        if(this.code ||
+          this.name ||
+          this.colorId ||
+          this.otherId ||
+          this.sizeId ||
+          this.collectionId ||
+          this.typeId ||
+          this.quantityStart ||
+          this.quantityEnd ||
+          this.priceStart ||
+          this.priceEnd 
+        ){
+          this.filtered = true;
+        }
+        else{
+          this.filtered = false;
+        }
 
         this.setSessionParams();
       }

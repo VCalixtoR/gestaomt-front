@@ -71,6 +71,9 @@ export default {
 .white{
   color: var(--color-white);
 }
+.pink{
+  color: var(--color-pink3);
+}
 .inherit{
   color: inherit;
 }

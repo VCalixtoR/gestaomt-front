@@ -7,6 +7,9 @@
       <TextC colorClass="black1" fontSize='var(--text-title)'>
         Filtrar
       </TextC>
+      <TextC colorClass="pink" fontSize='var(--text-warn)' fontWeight="bold" v-if="this.filtered">
+        Atenção: Filtros aplicados
+      </TextC>
 
       <div class="clientFiltersRow">
         <div class="nameInputWrapper">
@@ -274,6 +277,7 @@ export default {
       lastBuyStartT: '',
       lastBuyEndT: '',
 
+      filtered: false,
       mountedDone: false
     }
   },
@@ -343,7 +347,7 @@ export default {
           this.clientIds.push(client['client_id']);
           this.tableClients['content'].push([
             client['client_name'],
-            client['last_sale_date'] ? client['last_sale_date'] : '---',
+            client['last_sale_date'] ? Utils.getDateTimeString(client['last_sale_date'], '/', ':', false) : '---',
             Utils.getCurrencyFormat(client['last_sale_total_value']),
             client['children'] && client['children'].length > 0 ? client['children'].map(x => x['children_name']) : ['---'],
             client['contacts'].find(x => x['contact_type'] == 'W') ? client['contacts'].find(x => x['contact_type'] == 'W')['contact_value'] : '---',
@@ -353,17 +357,30 @@ export default {
 
         this.actualClientsPage = Math.ceil((offset+1)/this.defLimit);
         this.maxClientsPages = Math.max(Math.ceil(vreturn['response']['count_clients']/this.defLimit), 1);
-
         this.clientName = clientName;
         this.childName = childrenName;
         this.clientClassification = clientClassification;
         this.clientWhatsapp = clientWhatsapp;
-
         this.birthStartDayMonth = startChildrenBirthDayMonth;
         this.birthEndDayMonth = endChildrenBirthDayMonth;
-
         this.lastBuyStartT = startLastSaleDate;
         this.lastBuyEndT = endLastSaleDate;
+
+        // checks if it was filtered
+        if(this.clientName || 
+          this.childName || 
+          this.clientClassification || 
+          this.clientWhatsapp || 
+          this.birthStartDayMonth || 
+          this.birthEndDayMonth || 
+          this.lastBuyStartT || 
+          this.lastBuyEndT
+        ){
+          this.filtered = true;
+        }
+        else{
+          this.filtered = false;
+        }
 
         this.setSessionParams();
       }

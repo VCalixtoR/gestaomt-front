@@ -25,7 +25,8 @@ const DYNAMIC_TEXT_SIZES_DESKTOP = [
   { 'label': '--text-page-title', 'value': '27px' },
   { 'label': '--text-title', 'value': '22px' },
   { 'label': '--text-normal', 'value': '18px' },
-  { 'label': '--text-small', 'value': '15px'}
+  { 'label': '--text-small', 'value': '15px'},
+  { 'label': '--text-warn', 'value': '10px'}
 ];
 
 // text sizes for small screens
@@ -33,7 +34,8 @@ const DYNAMIC_TEXT_SIZES_MOBILE = [
   { 'label': '--text-page-title', 'value': '29px' },
   { 'label': '--text-title', 'value': '24px' },
   { 'label': '--text-normal', 'value': '19px' },
-  { 'label': '--text-small', 'value': '17px'}
+  { 'label': '--text-small', 'value': '17px'},
+  { 'label': '--text-warn', 'value': '11px'}
 ];
 
 // do not change this, used in responsivity

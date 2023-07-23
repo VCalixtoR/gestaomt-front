@@ -7,6 +7,9 @@
       <TextC colorClass="black1" fontSize='var(--text-title)'>
         Filtrar
       </TextC>
+      <TextC colorClass="pink" fontSize='var(--text-warn)' fontWeight="bold" v-if="this.filtered">
+        Atenção: Filtros aplicados
+      </TextC>
 
       <div class="filterRow">
         <div class="row1Left">
@@ -196,7 +199,7 @@ export default {
 
       conditionalIds: [],
       conditionalStatusTmp: [],
-
+      filtered: false,
       mountedDone: false
     }
   },
@@ -293,6 +296,19 @@ export default {
         this.conditionalStatus = conditionalStatus;
         this.creationDateTimeStart = creationDateTimeStart;
         this.creationDateTimeEnd = creationDateTimeEnd;
+
+        // checks if it was filtered
+        if(this.conditionalId || 
+          this.clientName ||
+          this.conditionalStatus ||
+          this.creationDateTimeStart ||
+          this.creationDateTimeEnd
+        ){
+          this.filtered = true;
+        }
+        else{
+          this.filtered = false;
+        }
 
         this.setSessionParams();
       }

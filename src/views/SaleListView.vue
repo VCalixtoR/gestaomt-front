@@ -7,6 +7,9 @@
       <TextC colorClass="black1" fontSize='var(--text-title)'>
         Filtrar
       </TextC>
+      <TextC colorClass="pink" fontSize='var(--text-warn)' fontWeight="bold" v-if="this.filtered">
+        Atenção: Filtros aplicados
+      </TextC>
 
       <div class="filterRow">
         <div class="row1Left">
@@ -205,6 +208,7 @@ export default {
       totalValueEnd: null,
 
       salesIds: [],
+      filtered: false,
       mountedDone: false
     }
   },
@@ -298,7 +302,6 @@ export default {
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
         this.maxPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
-
         this.saleId = saleId;
         this.clientName = clientName;
         this.creationDateTimeStart = creationDateTimeStart;
@@ -306,6 +309,21 @@ export default {
         this.saleStatus = saleStatus;
         this.totalValueStart = totalValueStart;
         this.totalValueEnd = totalValueEnd;
+
+        // checks if it was filtered
+        if(this.saleId ||
+          this.clientName ||
+          this.creationDateTimeStart ||
+          this.creationDateTimeEnd ||
+          this.saleStatus ||
+          this.totalValueStart ||
+          this.totalValueEnd
+        ){
+          this.filtered = true;
+        }
+        else{
+          this.filtered = false;
+        }
 
         this.setSessionParams();
       }
