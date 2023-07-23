@@ -1,6 +1,6 @@
 <template>
 
-  <div class="pageContent">
+  <div class="pageContent" v-if="this.mountedDone">
 
     <div class="clientFilters">
       
@@ -21,6 +21,7 @@
             name="name"
             maxlength="50"
             :onlyLetters="true"
+            :initialValue="this.initialClientName"
           />
         </div>
 
@@ -36,6 +37,7 @@
             name="childname"
             maxlength="50"
             :onlyLetters="true"
+            :initialValue="this.initialChildName"
           />
         </div>
       </div>
@@ -52,6 +54,7 @@
             name="classification"
             colorClass="pink3"
             :items="this.classSelectI"
+            :initialOptValue="this.initialClass"
           />
         </div>
 
@@ -66,6 +69,7 @@
             type="text"
             name="whatsapp"
             :mask="['(##) ####-####', '(##) #####-####']"
+            :initialValue="this.initialWhatsapp"
           />
         </div>
       </div>
@@ -82,6 +86,7 @@
           name="birthStartDay"
           min="1"
           max="31"
+          :initialValue="this.initialBirthDayStart"
         />
         <SelectC id="birthStartMonthInput"
           ref="birthStartMonthInput"
@@ -89,6 +94,7 @@
           name="birthStartMonth"
           colorClass="pink3"
           :items="this.monthSelectI"
+          :initialOptValue="this.initialBirthMonthStart"
         />
 
         <LabelC for="birthEndDayInput"
@@ -102,6 +108,7 @@
           name="birthEndDay"
           min="1"
           max="31"
+          :initialValue="this.initialBirthDayEnd"
         />
         <SelectC id="birthEndMonthInput"
           ref="birthEndMonthInput"
@@ -109,6 +116,7 @@
           name="birthEndMonth"
           colorClass="pink3"
           :items="this.monthSelectI"
+          :initialOptValue="this.initialBirthMonthEnd"
         />
       </div>
 
@@ -122,6 +130,7 @@
           class="lastBuyStartInput"
           type="datetime-local"
           name="lastBuyStart"
+          :initialValue="this.initialLastBuyStart"
         />
 
         <LabelC for="lastBuyEndInput"
@@ -133,6 +142,7 @@
           class="lastBuyEndInput"
           type="datetime-local"
           name="lastBuyEnd"
+          :initialValue="this.initialLastBuyEnd"
         />
 
       </div>
@@ -188,6 +198,7 @@
 <script>
 
 import ButtonC from '../components/ButtonC.vue'
+import ClientStorage from '../js/clientStorage.js'
 import InputC from '../components/InputC.vue'
 import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
@@ -239,6 +250,18 @@ export default {
         { label: 'novembro' , value: '11' },
         { label: 'dezembro' , value: '12' }
       ],
+
+      initialClientName: null,
+      initialChildName: null,
+      initialClass: null,
+      initialWhatsapp: null,
+      initialBirthDayStart: null,
+      initialBirthMonthStart: null,
+      initialBirthDayEnd: null,
+      initialBirthMonthEnd: null,
+      initialLastBuyStart: null,
+      initialLastBuyEnd: null,
+
       actualClientsPage: 1,
       maxClientsPages: 1,
       defLimit: 10,
@@ -249,13 +272,57 @@ export default {
       birthStartDayMonth: '',
       birthEndDayMonth: '',
       lastBuyStartT: '',
-      lastBuyEndT: ''
+      lastBuyEndT: '',
+
+      mountedDone: false
     }
   },
 
-  async created() {
+  created(){
     this.$root.setPageLoggedName('Visualizar e Alterar Clientes');
-    await this.loadClients(this.defLimit, 0);
+  },
+  async mounted(){
+    let params = this.loadSessionParams();
+    if(params == null){
+      await this.loadClients(this.defLimit, 0);
+    }
+    else{
+      // set initial element values before async rendering
+      this.defLimit = params['defLimit'];
+      this.actualClientsPage = params['actualClientsPage'];
+      this.initialClientName = params['clientName'];
+      this.initialChildName = params['childName'];
+      this.initialClass = params['clientClassification'];
+      this.initialWhatsapp = params['clientWhatsapp'];
+      if(params['birthStartDayMonth'] && params['birthStartDayMonth'].includes('-')){
+        let tmp = params['birthStartDayMonth'].split('-');
+        this.initialBirthMonthStart = String(parseInt(tmp[0]));
+        this.initialBirthDayStart = String(parseInt(tmp[1]));
+      }
+      if(params['birthEndDayMonth'] && params['birthEndDayMonth'].includes('-')){
+        let tmp = params['birthEndDayMonth'].split('-');
+        this.initialBirthMonthEnd = String(parseInt(tmp[0]));
+        this.initialBirthDayEnd = String(parseInt(tmp[1]));
+      }
+      this.initialLastBuyStart = params['lastBuyStartT'];
+      this.initialLastBuyEnd = params['lastBuyEndT'];
+
+      // load clients
+      await this.loadClients( 
+        params['defLimit'],
+        params['actualClientsPage']*10,
+        params['clientName'],
+        params['childName'],
+        params['clientClassification'],
+        params['clientWhatsapp'],
+        params['birthStartDayMonth'],
+        params['birthEndDayMonth'] ,
+        params['lastBuyStartT'],
+        params['lastBuyEndT']
+      );
+    }
+
+    this.mountedDone = true;
   },
 
   methods:{
@@ -297,6 +364,8 @@ export default {
 
         this.lastBuyStartT = startLastSaleDate;
         this.lastBuyEndT = endLastSaleDate;
+
+        this.setSessionParams();
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, []);
@@ -316,8 +385,8 @@ export default {
       let lastBuyStartT = this.$refs.lastBuyStartInput.getV();
       let lastBuyEndT = this.$refs.lastBuyEndInput.getV();
 
-      let birthStartDayMonth = birthStartMonth && birthStartDay ? String(birthStartMonth) + '-' + String(birthStartDay) : null;
-      let birthEndDayMonth = birthEndMonth && birthEndDay ? String(birthEndMonth) + '-' + String(birthEndDay) : null;
+      let birthStartDayMonth = birthStartMonth && birthStartDay ? String(birthStartMonth).padStart(2,'0') + '-' + String(birthStartDay).padStart(2,'0') : null;
+      let birthEndDayMonth = birthEndMonth && birthEndDay ? String(birthEndMonth).padStart(2,'0') + '-' + String(birthEndDay).padStart(2,'0') : null;
 
       await this.loadClients(this.defLimit, 0, clientName, childName, clientClassification, clientWhatsapp, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
     },
@@ -370,6 +439,29 @@ export default {
 
     editClient(rowNumber){
       this.$root.renderView('alterarcliente', { 'client_id' : this.clientIds[rowNumber] })
+    },
+
+    loadSessionParams(){
+      let params = ClientStorage.getSessionItem('cliVisParams');
+      if(params != null){
+        return JSON.parse(params);
+      }
+      return null;
+    },
+    setSessionParams(){
+      let params = {
+        'defLimit': this.defLimit,
+        'actualClientsPage': this.actualClientsPage-1,
+        'clientName': this.clientName,
+        'childName': this.childName,
+        'clientClassification': this.clientClassification,
+        'clientWhatsapp': this.clientWhatsapp,
+        'birthStartDayMonth': this.birthStartDayMonth,
+        'birthEndDayMonth': this.birthEndDayMonth,
+        'lastBuyStartT': this.lastBuyStartT,
+        'lastBuyEndT': this.lastBuyEndT
+      };
+      ClientStorage.setSessionItem('cliVisParams', JSON.stringify(params));
     }
   }
 }
