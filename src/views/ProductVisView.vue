@@ -1,6 +1,6 @@
 <template>
 
-  <div class="pageContent" v-if="this.createdDone">
+  <div class="pageContent" v-if="this.mountedDone">
 
     <div class="filter">
       
@@ -20,6 +20,7 @@
             type="text"
             name="code"
             maxlength="20"
+            :initialValue="this.initialCodeInput"
           />
         </div>
 
@@ -38,6 +39,7 @@
             type='text'
             name="startquantity"
             mask="####"
+            :initialValue="this.initialStartQuantity"
           />
 
           <LabelC for="endQuantityInput"
@@ -50,6 +52,7 @@
             type='text'
             name="endquantity"
             mask="####"
+            :initialValue="this.initialEndQuantity"
           />
         </div>
       </div>
@@ -66,6 +69,7 @@
             type="text"
             name="name"
             maxlength="50"
+            :initialValue="this.initialName"
           />
         </div>
 
@@ -84,6 +88,7 @@
             type='text'
             name="startprice"
             :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
+            :initialValue="this.initialStartPrice"
           />
 
           <LabelC for="endPriceInput"
@@ -96,6 +101,7 @@
             type='text'
             name="endprice"
             :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
+            :initialValue="this.initialEndPrice"
           />
         </div>
       </div>
@@ -112,6 +118,7 @@
             colorClass="pink3"
             name="type"
             :items="this.typeSelectItems"
+            :initialOptValue="this.initialTypeSelectItem"
           />
         </div>
 
@@ -126,6 +133,7 @@
             colorClass="pink3"
             name="color"
             :items="this.colorSelectItems"
+            :initialOptValue="this.initialColorSelectItem"
           />
         </div>
       </div>
@@ -142,6 +150,7 @@
             colorClass="pink3"
             name="collection"
             :items="this.collectionSelectItems"
+            :initialOptValue="this.initialCollectionSelectItem"
           />
         </div>
 
@@ -156,6 +165,7 @@
             colorClass="pink3"
             name="other"
             :items="this.otherSelectItems"
+            :initialOptValue="this.initialOtherSelectItem"
           />
         </div>
       </div>
@@ -172,6 +182,7 @@
             colorClass="pink3"
             name="size"
             :items="this.sizeSelectItems"
+            :initialOptValue="this.initialSizeSelectItem"
           />
         </div>
       </div>
@@ -228,6 +239,7 @@
 <script>
 
 import ButtonC from '../components/ButtonC.vue'
+import ClientStorage from '../js/clientStorage.js'
 import InputC from '../components/InputC.vue'
 import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
@@ -264,6 +276,18 @@ export default {
       collectionSelectItems: [],
       otherSelectItems: [],
       sizeSelectItems: [],
+      
+      initialCodeInput: null,
+      initialName: null,
+      initialStartQuantity: null,
+      initialEndQuantity: null,
+      initialStartPrice: null,
+      initialEndPrice: null,
+      initialCollectionSelectItem: null,
+      initialColorSelectItem: null,
+      initialTypeSelectItem: null,
+      initialOtherSelectItem: null,
+      initialSizeSelectItem: null,
 
       actualProductsPage: 1,
       maxProductsPages: 1,
@@ -282,12 +306,14 @@ export default {
 
       showColorsInProductName: true,
       showOthersInProductName: true,
-      createdDone: false
+      mountedDone: false
     }
   },
 
-  async created() {
+  created() {
     this.$root.setPageLoggedName('Visualizar e Alterar Produtos');
+  },
+  async mounted() {
 
     let vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
 
@@ -310,9 +336,45 @@ export default {
       this.$root.renderView('home');
     }
 
-    await this.loadProducts(this.defLimit, 0);
+    let params = this.loadSessionParams();
+    if(params == null){
+      await this.loadProducts(this.defLimit, 0);
+    }
+    else{
+      // set initial element values before async rendering
+      this.defLimit = params['defLimit'];
+      this.actualProductsPage = params['actualProductsPage'];
+      this.initialCodeInput = params['code'];
+      this.initialName = params['name'];
+      this.initialStartQuantity = params['quantityStart'];
+      this.initialEndQuantity = params['quantityEnd'];
+      this.initialStartPrice = Utils.getCurrencyFormat(params['priceStart']);
+      this.initialEndPrice = Utils.getCurrencyFormat(params['priceEnd']);
+      this.initialColorSelectItem = params['colorId'];
+      this.initialOtherSelectItem = params['otherId'];
+      this.initialSizeSelectItem = params['sizeId'];
+      this.initialCollectionSelectItem = params['collectionId'];
+      this.initialTypeSelectItem = params['typeId'];
 
-    this.createdDone = true;
+      // load products
+      await this.loadProducts(
+        params['defLimit'],
+        params['actualProductsPage']*10,
+        params['code'],
+        params['name'],
+        params['colorId'],
+        params['otherId'],
+        params['sizeId'],
+        params['collectionId'],
+        params['typeId'],
+        params['quantityStart'],
+        params['quantityEnd'],
+        params['priceStart'],
+        params['priceEnd']
+      );
+    }
+
+    this.mountedDone = true;
   },
 
   methods:{
@@ -391,6 +453,8 @@ export default {
         this.quantityEnd = quantityEnd;
         this.priceStart = priceStart;
         this.priceEnd = priceEnd;
+
+        this.setSessionParams();
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, []);
@@ -472,6 +536,32 @@ export default {
 
     editProduct(rowNumber){
       this.$root.renderView('alterarproduto', { 'product_code' : this.productCodes[rowNumber] });
+    },
+
+    loadSessionParams(){
+      let params = ClientStorage.getSessionItem('prodVisParams');
+      if(params != null){
+        return JSON.parse(params);
+      }
+      return null;
+    },
+    setSessionParams(){
+      let params = {
+        'defLimit': this.defLimit,
+        'actualProductsPage': this.actualProductsPage-1,
+        'code': this.code,
+        'name': this.name,
+        'colorId': this.colorId,
+        'otherId': this.otherId,
+        'sizeId': this.sizeId,
+        'collectionId': this.collectionId,
+        'typeId': this.typeId,
+        'quantityStart': this.quantityStart,
+        'quantityEnd': this.quantityEnd,
+        'priceStart': this.priceStart,
+        'priceEnd': this.priceEnd
+      };
+      ClientStorage.setSessionItem('prodVisParams', JSON.stringify(params));
     }
   }
 }

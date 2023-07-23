@@ -49,6 +49,7 @@ export default {
   props: {
     id: String,
     name: String,
+    initialValue: String,
     mask: [ Array, String ],
     maxlength: String,
     autocomplete: {
@@ -86,6 +87,12 @@ export default {
     type: {
       default: 'text',
       type: String
+    }
+  },
+
+  mounted(){
+    if(this.initialValue){
+      this.setV(this.initialValue);
     }
   },
 
