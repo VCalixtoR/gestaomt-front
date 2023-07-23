@@ -40,9 +40,39 @@ function getJwtToken() {
   ));
 }
 
+function getSessionItem(label) {
+
+  if(typeof label === 'string' && label != 'jwtLocal' && label != 'jwtSession'){
+    let value = window.sessionStorage.getItem(label);
+    return value != null && value != 'null' ? value : null;
+  }
+  else{
+    console.log(`WARNING: invalid item label to get from session: ${label}`);
+    return null;
+  }
+}
+
+function setSessionItem(label, value) {
+
+  if(typeof label === 'string' && label != 'jwtLocal' && label != 'jwtSession'){
+
+    if(typeof value === 'string'){
+      window.sessionStorage.setItem(label, value);
+    }
+    else{
+      console.log(`WARNING: invalid item value type to store in session: ${typeof value}`);
+    }
+  }
+  else{
+    console.log(`WARNING: invalid item label to store in session: ${label}`);
+  }
+}
+
 export default{
   getJwtToken,
   setJwtToken,
   updateJwtToken,
-  removeJwtToken
+  removeJwtToken,
+  getSessionItem,
+  setSessionItem
 };
