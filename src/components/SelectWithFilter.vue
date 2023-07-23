@@ -70,6 +70,10 @@ export default {
     id: String,
     name: String,
     items: Array,
+    initialOptLabel: {
+      default: null,
+      type: [String, Number]
+    },
     initialOptValue: {
       default: null,
       type: [String, Number]
@@ -122,6 +126,14 @@ export default {
     this.selectedItems = this.items;
     this.$refs['input' + this.id].value = '---';
 
+    if(this.initialOptLabel != null && this.initialOptLabel != undefined){
+      for(let i = 0; i < this.items.length; i++){
+        if(this.items[i].label == this.initialOptLabel){
+          this.actualOptSelected = i;
+          this.$refs['input' + this.id].value = this.items[i].label;
+        }
+      }
+    }
     if(this.initialOptValue != null && this.initialOptValue != undefined){
       for(let i = 0; i < this.items.length; i++){
         if(this.items[i].value == this.initialOptValue){

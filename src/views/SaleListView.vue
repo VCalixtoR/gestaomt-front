@@ -1,6 +1,6 @@
 <template>
 
-  <div class="pageContent">
+  <div class="pageContent" v-if="this.mountedDone">
 
     <div class="filterSection">
       
@@ -10,41 +10,44 @@
 
       <div class="filterRow">
         <div class="row1Left">
-          <LabelC for="saleCodeInput"
+          <LabelC for="saleIdInput"
             labelText="Código"
             class="plabel"
           />
-          <InputC id="saleCodeInput"
-            ref="saleCodeInput"
-            class="pinput saleCodeInput"
+          <InputC id="saleIdInput"
+            ref="saleIdInput"
+            class="pinput saleIdInput"
             type="text"
             name="salecode"
             value="VENDA-"
             :mask="[ 'VENDA-####' ]"
+            :initialValue="this.initialSaleId"
           />
         </div>
 
         <div class="row1Right">
-          <LabelC for="lastSaleDateStartInput"
+          <LabelC for="creationDateTimeStartInput"
             labelText="Data de geração: De"
             class="plabel"
           />
-          <InputC id="lastSaleDateStartInput"
-            ref="lastSaleDateStartInput"
-            class="pinput lastSaleDateStartInput"
+          <InputC id="creationDateTimeStartInput"
+            ref="creationDateTimeStartInput"
+            class="pinput creationDateTimeStartInput"
             type="datetime-local"
             name="lastBuyStart"
+            :initialValue="this.initialCreationStart"
           />
 
-          <LabelC for="lastSaleDateEndInput"
+          <LabelC for="creationDateTimeEndInput"
             labelText="até"
             class="plabel"
           />
-          <InputC id="lastSaleDateEndInput"
-            ref="lastSaleDateEndInput"
-            class="pinput lastSaleDateEndInput"
+          <InputC id="creationDateTimeEndInput"
+            ref="creationDateTimeEndInput"
+            class="pinput creationDateTimeEndInput"
             type="datetime-local"
             name="lastBuyEnd"
+            :initialValue="this.initialCreationEnd"
           />
         </div>
       </div>
@@ -62,6 +65,7 @@
             colorClass="pink3"
             name="cliname"
             :items="this.cliNameSelectItems"
+            :initialOptLabel="initialCliName"
           />
         </div>
         <div class="row2Right">
@@ -75,6 +79,7 @@
             type="text"
             name="starttotalprice"
             :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
+            :initialValue="this.initialTotalValueStart"
           />
 
           <LabelC for="endTotalPriceInput"
@@ -87,6 +92,7 @@
             type="text"
             name="endtotalprice"
             :mask="[ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##', 'R$ #####,##' ]"
+            :initialValue="this.initialTotalValueEnd"
           />
         </div>
       </div>
@@ -144,6 +150,7 @@
 <script>
 
 import ButtonC from '../components/ButtonC.vue'
+import ClientStorage from '../js/clientStorage.js'
 import InputC from '../components/InputC.vue'
 import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
@@ -178,10 +185,17 @@ export default {
         'content': []
       },
 
+      initialSaleId: null,
+      initialCreationStart: null,
+      initialCreationEnd: null,
+      initialCliName: null,
+      initialSaleStatus: null,
+      initialTotalValueStart: null,
+      initialTotalValueEnd: null,
+      
       actualPage: 1,
       maxPages: 1,
       defLimit: 10,
-
       saleId: null,
       clientName: null,
       creationDateTimeStart: null,
@@ -190,13 +204,15 @@ export default {
       totalValueStart: null,
       totalValueEnd: null,
 
-      salesIds: []
+      salesIds: [],
+      mountedDone: false
     }
   },
 
-  async created() {
+  created() {
     this.$root.setPageLoggedName('Visualizar Vendas');
-
+  },
+  async mounted() {
     // clients names
     let vreturn = await this.$root.doRequest(
       Requests.getClients,
@@ -212,7 +228,36 @@ export default {
       this.$root.renderView('home');
     }
 
-    await this.loadSales(this.defLimit, 0);
+    let params = this.loadSessionParams();
+    if(params == null){
+      await this.loadSales(this.defLimit, 0);
+    }
+    else{
+      // set initial element values before async rendering
+      this.defLimit = params['defLimit'];
+      this.actualPage = params['actualPage'];
+      this.initialSaleId = `VENDA-${params['saleId'] ? String(params['saleId']) : ''}`;
+      this.initialCliName = params['clientName'];
+      this.initialCreationStart = params['creationDateTimeStart'];
+      this.initialCreationEnd = params['creationDateTimeEnd'];
+      this.initialSaleStatus = params['saleStatus'];
+      this.initialTotalValueStart = params['totalValueStart'] ? Utils.getCurrencyFormat(params['totalValueStart']) : null;
+      this.initialTotalValueEnd = params['totalValueEnd'] ? Utils.getCurrencyFormat(params['totalValueEnd']) : null;
+
+      // load products
+      await this.loadSales( 
+        params['defLimit'],
+        params['actualPage']*10,
+        params['saleId'],
+        params['clientName'],
+        params['creationDateTimeStart'],
+        params['creationDateTimeEnd'],
+        params['saleStatus'],
+        params['totalValueStart'],
+        params['totalValueEnd']
+      );
+    }
+    this.mountedDone = true;
   },
 
   methods:{
@@ -261,34 +306,36 @@ export default {
         this.saleStatus = saleStatus;
         this.totalValueStart = totalValueStart;
         this.totalValueEnd = totalValueEnd;
+
+        this.setSessionParams();
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderRequestErrorMsg(vreturn, ['Data e hora de início inválida', 'Data e hora de fim inválida']);
       }
     },
 
     async filter(){
       
-      let saleId = this.$refs.saleCodeInput.getV();
+      let saleId = this.$refs.saleIdInput.getV();
       let clientName = this.$refs.cliNameSelect.getL();
-      let creationDateTimeStart = this.$refs.lastSaleDateStartInput.getV();
-      let creationDateTimeEnd = this.$refs.lastSaleDateEndInput.getV();
-      let totalValueStart = this.$refs.startTotalPriceInput.getV();
-      let totalValueEnd = this.$refs.endTotalPriceInput.getV();
+      let creationDateTimeStart = this.$refs.creationDateTimeStartInput.getV();
+      let creationDateTimeEnd = this.$refs.creationDateTimeEndInput.getV();
+      let totalValueStart = Utils.getNumberFormatFromCurrency(this.$refs.startTotalPriceInput.getV());
+      let totalValueEnd = Utils.getNumberFormatFromCurrency(this.$refs.endTotalPriceInput.getV());
 
       saleId = saleId.replace('VENDA-', '');
-      totalValueStart = Utils.getNumberFormatFromCurrency(totalValueStart);
-      totalValueEnd = Utils.getNumberFormatFromCurrency(totalValueEnd);
+      totalValueStart = totalValueStart ? totalValueStart : null;
+      totalValueEnd = totalValueEnd ? totalValueEnd : null;
 
       await this.loadSales(this.defLimit, 0, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, null, totalValueStart, totalValueEnd);
     },
 
     async cleanFilter(){
 
-      this.$refs.saleCodeInput.setV('VENDA-');
+      this.$refs.saleIdInput.setV('VENDA-');
       this.$refs.cliNameSelect.setV('');
-      this.$refs.lastSaleDateStartInput.setV('');
-      this.$refs.lastSaleDateEndInput.setV('');
+      this.$refs.creationDateTimeStartInput.setV('');
+      this.$refs.creationDateTimeEndInput.setV('');
       this.$refs.startTotalPriceInput.setV('');
       this.$refs.endTotalPriceInput.setV('');
 
@@ -358,6 +405,28 @@ export default {
     generatePDF(salePos){
       this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
       //console.log('generate pdf ' + this.salesIds[salePos]);
+    },
+
+    loadSessionParams(){
+      let params = ClientStorage.getSessionItem('saleListParams');
+      if(params != null){
+        return JSON.parse(params);
+      }
+      return null;
+    },
+    setSessionParams(){
+      let params = {
+        'defLimit': this.defLimit,
+        'actualPage': this.actualPage-1,
+        'saleId': this.saleId,
+        'clientName': this.clientName,
+        'creationDateTimeStart': this.creationDateTimeStart,
+        'creationDateTimeEnd': this.creationDateTimeEnd,
+        'saleStatus': this.saleStatus,
+        'totalValueStart': this.totalValueStart,
+        'totalValueEnd': this.totalValueEnd
+      };
+      ClientStorage.setSessionItem('saleListParams', JSON.stringify(params));
     }
   }
 }
@@ -406,10 +475,10 @@ export default {
   .row2Left, .row2Right{
     width: 50%;
   }
-  .saleCodeInput {
+  .saleIdInput {
     width: 115px;
   }
-  .lastSaleDateStartInput, .lastSaleDateEndInput{
+  .creationDateTimeStartInput, .creationDateTimeEndInput{
     width: 205px;
   }
   .startTotalPriceInput, .endTotalPriceInput{
