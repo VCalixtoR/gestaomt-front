@@ -1,6 +1,6 @@
 <template>
 
-  <div class="pageContent">
+  <div class="pageContent" v-if="this.mountedDone">
 
     <div class="filterSection">
       
@@ -10,41 +10,44 @@
 
       <div class="filterRow">
         <div class="row1Left">
-          <LabelC for="conditionalCodeInput"
+          <LabelC for="conditionalIdInput"
             labelText="Código"
             class="plabel"
           />
-          <InputC id="conditionalCodeInput"
-            ref="conditionalCodeInput"
-            class="pinput conditionalCodeInput"
+          <InputC id="conditionalIdInput"
+            ref="conditionalIdInput"
+            class="pinput conditionalIdInput"
             type="text"
             name="conditionalcode"
             value="COND-"
             :mask="[ 'COND-####' ]"
+            :initialValue="this.initialConditionalId"
           />
         </div>
 
         <div class="row1Right">
-          <LabelC for="lastCondDateStartInput"
+          <LabelC for="creationDateTimeStartInput"
             labelText="Data de geração: De"
             class="plabel"
           />
-          <InputC id="lastCondDateStartInput"
-            ref="lastCondDateStartInput"
-            class="pinput lastCondDateStartInput"
+          <InputC id="creationDateTimeStartInput"
+            ref="creationDateTimeStartInput"
+            class="pinput creationDateTimeStartInput"
             type="datetime-local"
-            name="lastBuyStart"
+            name="creationStart"
+            :initialValue="this.initialCreationStart"
           />
 
-          <LabelC for="lastCondDateEndInput"
+          <LabelC for="creationDateTimeEndInput"
             labelText="até"
             class="plabel"
           />
-          <InputC id="lastCondDateEndInput"
-            ref="lastCondDateEndInput"
-            class="pinput lastCondDateEndInput"
+          <InputC id="creationDateTimeEndInput"
+            ref="creationDateTimeEndInput"
+            class="pinput creationDateTimeEndInput"
             type="datetime-local"
-            name="lastBuyEnd"
+            name="creationEnd"
+            :initialValue="this.initialCreationEnd"
           />
         </div>
       </div>
@@ -62,6 +65,7 @@
             colorClass="pink3"
             name="cliname"
             :items="this.cliNameSelectItems"
+            :initialOptLabel="this.initialCliName"
           />
         </div>
         <div class="row2Right">
@@ -76,6 +80,7 @@
             colorClass="pink3"
             name="status"
             :items="this.statusItems"
+            :initialOptLabel="this.initialConditionalStatus"
           />
         </div>
       </div>
@@ -134,6 +139,7 @@
 <script>
 
 import ButtonC from '../components/ButtonC.vue'
+import ClientStorage from '../js/clientStorage.js'
 import InputC from '../components/InputC.vue'
 import LabelC from '../components/LabelC.vue'
 import Requests from '../js/requests.js'
@@ -173,10 +179,15 @@ export default {
         'content': []
       },
 
+      initialConditionalId: null,
+      initialCreationStart: null,
+      initialCreationEnd: null,
+      initialCliName: null,
+      initialConditionalStatus: null,
+
       actualPage: 1,
       maxPages: 1,
       defLimit: 10,
-
       conditionalId: null,
       clientName: null,
       conditionalStatus: null,
@@ -184,13 +195,16 @@ export default {
       creationDateTimeEnd: null,
 
       conditionalIds: [],
-      conditionalStatusTmp: []
+      conditionalStatusTmp: [],
+
+      mountedDone: false
     }
   },
 
-  async created() {
+  created() {
     this.$root.setPageLoggedName('Visualizar Condicionais');
-
+  },
+  async mounted() {
     // clients names
     let vreturn = await this.$root.doRequest(
       Requests.getClients,
@@ -206,7 +220,32 @@ export default {
       this.$root.renderView('home');
     }
 
-    await this.loadConditionals(this.defLimit, 0);
+    let params = this.loadSessionParams();
+    if(params == null){
+      await this.loadConditionals(this.defLimit, 0);
+    }
+    else{
+      // set initial element values before async rendering
+      this.defLimit = params['defLimit'];
+      this.actualPage = params['actualPage'];
+      this.initialConditionalId = `COND-${params['conditionalId'] ? String(params['conditionalId']) : ''}`;
+      this.initialCliName = params['clientName'];
+      this.initialConditionalStatus = params['conditionalStatus'];
+      this.initialCreationStart = params['creationDateTimeStart'];
+      this.initialCreationEnd = params['creationDateTimeEnd'];
+
+      // load conditionals
+      await this.loadConditionals( 
+        params['defLimit'], 
+        params['actualPage']*10,
+        params['conditionalId'],
+        params['clientName'],
+        params['conditionalStatus'],
+        params['creationDateTimeStart'],
+        params['creationDateTimeEnd']
+      );
+    }
+    this.mountedDone = true;
   },
 
   methods:{
@@ -249,25 +288,26 @@ export default {
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
         this.maxPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
-
         this.conditionalId = conditionalId;
         this.clientName = clientName;
         this.conditionalStatus = conditionalStatus;
         this.creationDateTimeStart = creationDateTimeStart;
         this.creationDateTimeEnd = creationDateTimeEnd;
+
+        this.setSessionParams();
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderRequestErrorMsg(vreturn, ['Data e hora de início inválida', 'Data e hora de fim inválida']);
       }
     },
 
     async filter(){
       
-      let conditionalId = this.$refs.conditionalCodeInput.getV();
+      let conditionalId = this.$refs.conditionalIdInput.getV();
       let clientName = this.$refs.cliNameSelect.getL();
       let conditionalStatus = this.$refs.statusSelect.getV();
-      let creationDateTimeStart = this.$refs.lastCondDateStartInput.getV();
-      let creationDateTimeEnd = this.$refs.lastCondDateEndInput.getV();
+      let creationDateTimeStart = this.$refs.creationDateTimeStartInput.getV();
+      let creationDateTimeEnd = this.$refs.creationDateTimeEndInput.getV();
       
       conditionalId = conditionalId.replace('COND-', '');
 
@@ -276,11 +316,11 @@ export default {
 
     async cleanFilter(){
 
-      this.$refs.conditionalCodeInput.setV('COND-');
+      this.$refs.conditionalIdInput.setV('COND-');
       this.$refs.cliNameSelect.setV('');
       this.$refs.statusSelect.setV('');
-      this.$refs.lastCondDateStartInput.setV('');
-      this.$refs.lastCondDateEndInput.setV('');
+      this.$refs.creationDateTimeStartInput.setV('');
+      this.$refs.creationDateTimeEndInput.setV('');
       
       await this.loadConditionals(this.defLimit, 0);
     },
@@ -295,7 +335,7 @@ export default {
         this.conditionalStatus,
         this.creationDateTimeStart,
         this.creationDateTimeEnd
-      )
+      );
     },
 
     async nextConditionalPage(){
@@ -308,7 +348,7 @@ export default {
         this.conditionalStatus,
         this.creationDateTimeStart,
         this.creationDateTimeEnd
-      )
+      );
     },
 
     async changeConditionalStatus(statusValue, conditionalPos){
@@ -343,6 +383,26 @@ export default {
     generatePDF(conditionalPos){
       this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
       //console.log('generate pdf ' + this.conditionalIds[conditionalPos]);
+    },
+
+    loadSessionParams(){
+      let params = ClientStorage.getSessionItem('conditionalListParams');
+      if(params != null){
+        return JSON.parse(params);
+      }
+      return null;
+    },
+    setSessionParams(){
+      let params = {
+        'defLimit': this.defLimit,
+        'actualPage': this.actualPage-1,
+        'conditionalId': this.conditionalId,
+        'clientName': this.clientName,
+        'conditionalStatus': this.conditionalStatus,
+        'creationDateTimeStart': this.creationDateTimeStart,
+        'creationDateTimeEnd': this.creationDateTimeEnd,
+      };
+      ClientStorage.setSessionItem('conditionalListParams', JSON.stringify(params));
     }
   }
 }
@@ -391,10 +451,10 @@ export default {
   .row2Left, .row2Right{
     width: 50%;
   }
-  .conditionalCodeInput {
+  .conditionalIdInput {
     width: 115px;
   }
-  .lastCondDateStartInput, .lastCondDateEndInput{
+  .creationDateTimeStartInput, .creationDateTimeEndInput{
     width: 205px;
   }
   .statusSelect{

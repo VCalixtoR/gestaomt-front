@@ -34,7 +34,7 @@
             ref="creationDateTimeStartInput"
             class="pinput creationDateTimeStartInput"
             type="datetime-local"
-            name="lastBuyStart"
+            name="creationStart"
             :initialValue="this.initialCreationStart"
           />
 
@@ -46,7 +46,7 @@
             ref="creationDateTimeEndInput"
             class="pinput creationDateTimeEndInput"
             type="datetime-local"
-            name="lastBuyEnd"
+            name="creationEnd"
             :initialValue="this.initialCreationEnd"
           />
         </div>
@@ -244,7 +244,7 @@ export default {
       this.initialTotalValueStart = params['totalValueStart'] ? Utils.getCurrencyFormat(params['totalValueStart']) : null;
       this.initialTotalValueEnd = params['totalValueEnd'] ? Utils.getCurrencyFormat(params['totalValueEnd']) : null;
 
-      // load products
+      // load sales
       await this.loadSales( 
         params['defLimit'],
         params['actualPage']*10,
