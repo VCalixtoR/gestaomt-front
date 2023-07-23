@@ -657,7 +657,7 @@ export default {
 
       if(vreturn && vreturn['ok']){
         let self = this;
-        this.$root.renderMsg('ok', 'Sucesso!', 'Cliente atualizado.', function () { self.$router.go(); });
+        this.$root.renderMsg('ok', 'Sucesso!', 'Cliente atualizado.', function () { self.$router.go(-1); });
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, ['Cliente não econtrado!', 'Cpf já utilizado!']);

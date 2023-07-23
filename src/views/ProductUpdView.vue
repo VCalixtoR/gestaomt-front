@@ -544,7 +544,7 @@ export default {
 
       if(vreturn && vreturn['ok']){
         let self = this;
-        this.$root.renderMsg('ok', 'Sucesso!', 'Produtos atualizados.', function () { self.$router.go(); });
+        this.$root.renderMsg('ok', 'Sucesso!', 'Produtos atualizados.', function () { self.$router.go(-1); });
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, [
