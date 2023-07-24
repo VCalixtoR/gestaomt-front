@@ -147,7 +147,29 @@
           name="lastBuyEnd"
           :initialValue="this.initialLastBuyEnd"
         />
+      </div>
 
+      <div class="clientFiltersRow">
+        <LabelC for="orderBySelect"
+          labelText="Ordenar por:"
+          class="ilabel"
+        />
+        <SelectC id="orderBySelect"
+          ref="orderBySelect"
+          class="orderBySelect"
+          name="orderBy"
+          colorClass="pink3"
+          :items="this.orderBySelectI"
+          :initialOptValue="this.initialOrderBy"
+        />
+        <SelectC id="orderByAscSelect"
+          ref="orderByAscSelect"
+          class="orderByAscSelect"
+          name="orderByAsc"
+          colorClass="pink3"
+          :items="this.orderByAscSelectI"
+          :initialOptValue="this.initialOrderByAsc"
+        />
       </div>
     </div>
 
@@ -253,6 +275,16 @@ export default {
         { label: 'novembro' , value: '11' },
         { label: 'dezembro' , value: '12' }
       ],
+      orderBySelectI: [
+        { label: 'Nome' , value: 'person_name' },
+        { label: 'Ultima Compra' , value: 'last_sale_date' },
+        { label: 'Valor Ultima Compra' , value: 'last_sale_total_value' },
+        { label: 'Classificação' , value: 'client_classification' }
+      ],
+      orderByAscSelectI: [
+        { label: '▲' , value: 1 },
+        { label: '▼' , value: 0 }
+      ],
 
       initialClientName: null,
       initialChildName: null,
@@ -264,6 +296,8 @@ export default {
       initialBirthMonthEnd: null,
       initialLastBuyStart: null,
       initialLastBuyEnd: null,
+      initialOrderBy: null,
+      initialOrderByAsc: null,
 
       actualClientsPage: 1,
       maxClientsPages: 1,
@@ -276,6 +310,8 @@ export default {
       birthEndDayMonth: '',
       lastBuyStartT: '',
       lastBuyEndT: '',
+      orderBy: 'person_name',
+      orderByAsc: 1,
 
       filtered: false,
       mountedDone: false
@@ -288,7 +324,7 @@ export default {
   async mounted(){
     let params = this.loadSessionParams();
     if(params == null){
-      await this.loadClients(this.defLimit, 0);
+      await this.loadClients(this.defLimit, 0, 'person_name', 1);
     }
     else{
       // set initial element values before async rendering
@@ -310,11 +346,15 @@ export default {
       }
       this.initialLastBuyStart = params['lastBuyStartT'];
       this.initialLastBuyEnd = params['lastBuyEndT'];
+      this.initialOrderBy = params['orderBy'];
+      this.initialOrderByAsc = params['orderByAsc'];
 
       // load clients
       await this.loadClients( 
         params['defLimit'],
         params['actualClientsPage']*10,
+        params['orderBy'],
+        params['orderByAsc'],
         params['clientName'],
         params['childName'],
         params['clientClassification'],
@@ -331,14 +371,14 @@ export default {
 
   methods:{
 
-    async loadClients(limit, offset, clientName=null, childrenName=null, clientClassification=null, clientWhatsapp=null, startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null){
+    async loadClients(limit, offset, orderBy, orderByAsc, clientName=null, childrenName=null, clientClassification=null, clientWhatsapp=null, startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null){
 
       this.clientIds = [];
       this.tableClients['content'] = [];
 
       let vreturn = await this.$root.doRequest(
         Requests.getClients,
-        [ false, limit, offset, clientName, childrenName, clientClassification, clientWhatsapp, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
+        [ false, limit, offset, orderBy, orderByAsc, clientName, childrenName, clientClassification, clientWhatsapp, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['clients']){
@@ -365,6 +405,8 @@ export default {
         this.birthEndDayMonth = endChildrenBirthDayMonth;
         this.lastBuyStartT = startLastSaleDate;
         this.lastBuyEndT = endLastSaleDate;
+        this.orderBy = orderBy;
+        this.orderByAsc = orderByAsc;
 
         // checks if it was filtered
         if(this.clientName || 
@@ -374,7 +416,9 @@ export default {
           this.birthStartDayMonth || 
           this.birthEndDayMonth || 
           this.lastBuyStartT || 
-          this.lastBuyEndT
+          this.lastBuyEndT ||
+          this.orderBy != 'person_name' ||
+          this.orderByAsc != 1
         ){
           this.filtered = true;
         }
@@ -401,11 +445,13 @@ export default {
       let birthEndMonth = this.$refs.birthEndMonthInput.getV();
       let lastBuyStartT = this.$refs.lastBuyStartInput.getV();
       let lastBuyEndT = this.$refs.lastBuyEndInput.getV();
+      let orderBy = this.$refs.orderBySelect.getV();
+      let orderByAsc = this.$refs.orderByAscSelect.getV();
 
       let birthStartDayMonth = birthStartMonth && birthStartDay ? String(birthStartMonth).padStart(2,'0') + '-' + String(birthStartDay).padStart(2,'0') : null;
       let birthEndDayMonth = birthEndMonth && birthEndDay ? String(birthEndMonth).padStart(2,'0') + '-' + String(birthEndDay).padStart(2,'0') : null;
 
-      await this.loadClients(this.defLimit, 0, clientName, childName, clientClassification, clientWhatsapp, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
+      await this.loadClients(this.defLimit, 0, orderBy, orderByAsc, clientName, childName, clientClassification, clientWhatsapp, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
     },
 
     async cleanFilter(){
@@ -420,8 +466,10 @@ export default {
       this.$refs.birthEndMonthInput.setV('');
       this.$refs.lastBuyStartInput.setV('');
       this.$refs.lastBuyEndInput.setV('');
+      this.$refs.orderBySelect.setV('person_name');
+      this.$refs.orderByAscSelect.setV(1);
 
-      await this.loadClients(this.defLimit, 0);
+      await this.loadClients(this.defLimit, 0, 'person_name', 1);
     },
 
     async previousClientPage(){
@@ -429,6 +477,8 @@ export default {
       await this.loadClients( 
         this.defLimit,
         (this.actualClientsPage-2)*10,
+        this.orderBy,
+        this.orderByAsc,
         this.clientName,
         this.childName,
         this.clientClassification,
@@ -444,6 +494,8 @@ export default {
       await this.loadClients( 
         this.defLimit, 
         this.actualClientsPage*10,
+        this.orderBy,
+        this.orderByAsc,
         this.clientName,
         this.childName,
         this.clientClassification,
@@ -476,7 +528,9 @@ export default {
         'birthStartDayMonth': this.birthStartDayMonth,
         'birthEndDayMonth': this.birthEndDayMonth,
         'lastBuyStartT': this.lastBuyStartT,
-        'lastBuyEndT': this.lastBuyEndT
+        'lastBuyEndT': this.lastBuyEndT,
+        'orderBy': this.orderBy,
+        'orderByAsc': this.orderByAsc
       };
       ClientStorage.setSessionItem('cliVisParams', JSON.stringify(params));
     }
@@ -530,6 +584,12 @@ export default {
   .birthStartMonthInput, .birthEndMonthInput{
     width: 138px;
   }
+  .orderBySelect{
+    width: 210px;
+  }
+  .orderByAscSelect{
+    width: 50px;
+  }
   .filterButton, .clearFilterButton{
     display: inline-block;
     width: 20%;
@@ -560,6 +620,14 @@ export default {
   .birthStartMonthInput, .birthEndMonthInput{
     display: inline-block;
     width: 70%;
+  }
+  .orderBySelect{
+    display: inline-block;
+    width: 85%;
+  }
+  .orderByAscSelect{
+    display: inline-block;
+    width: 15%;
   }
   .filterButton, .clearFilterButton{
     display: block;

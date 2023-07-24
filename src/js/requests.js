@@ -347,14 +347,16 @@ async function getClients(token_jwt, args){
     'only_client_names_cpfs': args[0],
     'limit': args[1],
     'offset': args[2],
-    'client_name': args[3],
-    'children_name': args[4],
-    'client_classification': args[5],
-    'client_whatsapp': args[6],
-    'children_birth_month_day_start': args[7],
-    'children_birth_month_day_end': args[8],
-    'last_sale_date_start': args[9],
-    'last_sale_date_end': args[10]
+    'order_by': args[3],
+    'order_by_asc': args[4],
+    'client_name': args[5],
+    'children_name': args[6],
+    'client_classification': args[7],
+    'client_whatsapp': args[8],
+    'children_birth_month_day_start': args[9],
+    'children_birth_month_day_end': args[10],
+    'last_sale_date_start': args[11],
+    'last_sale_date_end': args[12]
   });
 
   let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`);
@@ -526,7 +528,6 @@ async function updateProduct(token_jwt, args){
     body: JSON.stringify(jsonBody)
   }
   
-  console.log(jsonBody);
   let vreturn = await baseRequestFBody(myHeaders, `product`);
   return vreturn;
 }

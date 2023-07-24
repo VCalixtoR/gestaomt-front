@@ -351,7 +351,7 @@ export default {
     // clients
     let vreturn = await this.$root.doRequest(
       Requests.getClients,
-      [ true, null, null, null, null, null, null, null, null ]
+      [ true, null, null, null, null, null, null, null, null, null, null ]
     );
 
     if(vreturn && vreturn['ok'] && vreturn['response']){

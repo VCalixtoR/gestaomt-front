@@ -106,7 +106,7 @@ export default {
   },
 
   mounted(){
-    if(this.initialOptValue){
+    if(this.initialOptValue != null){
       for(let i = 0; i < this.items.length; i++){
         if(this.items[i].value == this.initialOptValue){
           this.actualOptSelected = i;
