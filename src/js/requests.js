@@ -584,6 +584,7 @@ async function createConditional(token_jwt, args){
   jsonBody['conditional_client_id'] = args[0];
   jsonBody['conditional_employee_id'] = args[1];
   jsonBody['conditional_has_products'] = args[2];
+  jsonBody['force_product_addition'] = args[3];
 
   var myHeaders = {
     method: 'PUT',

@@ -142,20 +142,20 @@
 
       <div class="pageSectionRow">
         <div class="row4Left">
-          <LabelC for="quantitySelect"
+          <LabelC for="quantityInput"
             labelText="Quantidade"
             class="plabel leftLabel"
             useRequiredChar
           />
-          <SelectWithFilter :key="quantitySelectKeyToReRender"
-            id="quantitySelect"
-            ref="quantitySelect"
-            class="pselect quantitySelect"
-            colorClass="pink3"
+          <InputC
+            id="quantityInput"
+            ref="quantityInput"
+            class="pinput quantityInput"
             name="quantity"
-            :inputDisabled="this.quantityDisabled"
-            :items="this.quantitySelectItems"
-            :initialOptValue="0"
+            type="number"
+            min="1"
+            colorClass="pink3"
+            :disabled="this.quantityDisabled"
           />
         </div>
 
@@ -276,7 +276,6 @@ export default {
       sizeSelectItems: [],
       colorSelectItems: [],
       othersSelectItems: [],
-      quantitySelectItems: [],
 
       tableProductsData: {
         'titles': [ 'Código', 'Nome', 'Tamanho', 'Cor', 'Outros', 'Quantidade', 'Remover' ],
@@ -295,7 +294,6 @@ export default {
       colorSelectKeyToReRender: 4000,
       othersSelectKeyToReRender: 5000,
       productkeyToReRender: 6000,
-      quantitySelectKeyToReRender: 8000,
 
       loadedProdInfo: null,
       conditionalCustomizedProducts: {},
@@ -453,15 +451,15 @@ export default {
 
       // checks size
       if(this.sizeSelectItems && this.sizeSelectItems.length > 0 && (sizeLabel == null || sizeLabel == undefined)){
-        this.quantitySelectItems = [{ 'label': 'Campo tamanho vazio', 'value': 0 }];
+        this.$refs['quantityInput'].setPlaceholder('Campo tamanho vazio');
       }
       // checks color
       else if(this.colorSelectItems && this.colorSelectItems.length > 0 && (colorLabel == null || colorLabel == undefined)){
-        this.quantitySelectItems = [{ 'label': 'Campo cor vazio', 'value': 0 }];
+        this.$refs['quantityInput'].setPlaceholder('Campo cor vazio', 'value');
       }
       // checks other
       else if(this.othersSelectItems && this.othersSelectItems.length > 0 && (otherLabel == null || otherLabel == undefined)){
-        this.quantitySelectItems = [{ 'label': 'Campo outro vazio', 'value': 0 }];
+        this.$refs['quantityInput'].setPlaceholder('Campo outro vazio', 'value');
       }
       // set quantity searching in actualCustomizedProducts
       else{
@@ -472,30 +470,21 @@ export default {
             this.actualCustomizedProducts[i]['product_other_name'] == otherLabel){
             
             foundCP = true;
+            let actualQuantity = this.actualCustomizedProducts[i]['product_quantity'];
 
-            if(this.actualCustomizedProducts[i]['product_quantity'] <= 0){
-              this.quantitySelectItems = [{ 'label': 'Variação sem estoque', 'value': 0 }];
-            }
-            else{
-              // quantity
-              this.quantitySelectItems = [];
-              for (let j = 1; j <= this.actualCustomizedProducts[i]['product_quantity']; j++) {
-                this.quantitySelectItems.push({ 'label': j.toString(), 'value': j });
-              };
-              this.quantityDisabled = false;
-            }
+            this.$refs['quantityInput'].setPlaceholder( `${actualQuantity == 0 ? 'Nenhuma' : actualQuantity} ${actualQuantity <= 1 ? 'peça' : 'peças'} em estoque`);
+            this.quantityDisabled = false;
           }
         }
         if(!foundCP){
           this.quantitySelectItems = [{ 'label': 'Variação não encontrada', 'value': 0 }];
         }
       }
-      this.quantitySelectKeyToReRender++;
     },
     resetProductQuantity(){
-      this.quantitySelectItems = [];
+      this.$refs['quantityInput'].setPlaceholder('');
+      this.$refs['quantityInput'].setV('');
       this.quantityDisabled = true;
-      this.quantitySelectKeyToReRender++;
     },
     addProduct(){
       let nameObj = this.$refs['nameSelect'].getObj();
@@ -503,16 +492,16 @@ export default {
       let sizeObj = this.$refs['sizeSelect'].getObj();
       let colorObj = this.$refs['colorSelect'].getObj();
       let otherObj = this.$refs['othersSelect'].getObj();
-      let quantityObj = this.$refs['quantitySelect'].getObj();
+      let quantity = this.$refs['quantityInput'].getV();
 
-      if(!quantityObj || !quantityObj['value'] || quantityObj['value'] <= 0){
-        this.$root.renderMsg('warn', 'Quantidade inválida!', 'Quantidade deve ser maior que 0');
+      if(quantity == null || isNaN(quantity) || quantity <= 0){
+        this.$root.renderMsg('warn', 'Quantidade inválida!', 'Quantidade deve ser um número maior que 0');
         return;
       }
 
       this.addProductToTable(
         nameObj['label'], codeObj['label'], sizeObj['label'], (colorObj ? colorObj['label'] : ''), 
-        (otherObj ? otherObj['label'] : ''), quantityObj['label']);
+        (otherObj ? otherObj['label'] : ''), quantity);
     },
     addProductToTable(name, code, size, color, other, quantity){
 
@@ -572,6 +561,7 @@ export default {
 
       let conditionalHasProducts = [];
       let conditionalProductsTmp = {};
+      let missingProductMsgs = [];
       // get product data from conditionalCustomizedProducts by code as key and find personalized product
       productsData.forEach((productFromTable) => {
 
@@ -580,6 +570,7 @@ export default {
         for(let i = 0; i < productData['customized_products'].length; i++){
           let customProductData = productData['customized_products'][i];
 
+          // find specific personalization
           if(
             productFromTable[2] == customProductData['product_size_name'] &&
             productFromTable[3] == (customProductData['product_color_name'] ? customProductData['product_color_name'] : '') &&
@@ -591,6 +582,16 @@ export default {
             conditionalProductsTmp[productId][customProductData['customized_product_id']] = {
               'customized_product_id': customProductData['customized_product_id'],
               'customized_product_conditional_quantity': Number(productFromTable[5])
+            }
+            // check and creates messages if is missing products in stock
+            if(Number(productFromTable[5]) > customProductData['product_quantity']){
+              let missingQuantity = Number(productFromTable[5])-customProductData['product_quantity'];
+              missingProductMsgs.push(
+                '   ' + String(missingQuantity) + ' ' + String(productFromTable[1]) + 
+                ' com tamanho: ' + productFromTable[2] +
+                (productFromTable[3] ? ', cor: ' + productFromTable[3] : '') +
+                (productFromTable[4] ? ', outro: ' + productFromTable[4] : '')
+              );
             }
           }
         }
@@ -611,14 +612,23 @@ export default {
 
       });
 
+      let forceProductAddition = false;
+      if(missingProductMsgs.length > 0){
+        missingProductMsgs.unshift('Ao confirmar será efetuado a condicional após ser adicionado estes produtos que estão faltando no estoque:');
+        forceProductAddition = await this.$root.renderMsg('warn', 'Confirmar adição de produtos?', missingProductMsgs, null, function(){}, function(){}, true);
+        if(!forceProductAddition){
+          return;
+        }
+      }
+
       let vreturn = await this.$root.doRequest(
         Requests.createConditional,
-        [clientId, employeeId, conditionalHasProducts]
+        [clientId, employeeId, conditionalHasProducts, forceProductAddition]
       );
 
       if(vreturn && vreturn['ok']){
         let self = this;
-        this.$root.renderMsg('ok', 'Sucesso!', 'Condicional cadastrada.', function () { self.$router.go(); });
+        this.$root.renderMsg('ok', 'Sucesso!',  (forceProductAddition ? 'Produtos adicionados e condicional cadastrada.' : 'Condicional cadastrada.'), function () { self.$router.go(); });
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, [
