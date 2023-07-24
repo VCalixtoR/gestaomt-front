@@ -732,13 +732,15 @@ async function getSales(token_jwt, args){
   let querystring = parseQueryStrFromObj({
     'limit': args[0],
     'offset': args[1],
-    'sale_id': args[2],
-    'sale_client_name': args[3],
-    'sale_creation_date_time_start': args[4],
-    'sale_creation_date_time_end': args[5],
-    'sale_status': args[6],
-    'sale_total_value_start': args[7],
-    'sale_total_value_end' : args[8]
+    'order_by': args[2],
+    'order_by_asc': args[3],
+    'sale_id': args[4],
+    'sale_client_name': args[5],
+    'sale_creation_date_time_start': args[6],
+    'sale_creation_date_time_end': args[7],
+    'sale_status': args[8],
+    'sale_total_value_start': args[9],
+    'sale_total_value_end' : args[10]
   });
 
   let vreturn = await baseRequestFBody(myHeaders, `sales${querystring}`);

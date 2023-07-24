@@ -99,6 +99,31 @@
           />
         </div>
       </div>
+
+      <div class="filterRow">
+        <div class="row3Left">
+          <LabelC for="orderBySelect"
+            labelText="Ordenar por:"
+            class="plabel"
+          />
+          <SelectC id="orderBySelect"
+            ref="orderBySelect"
+            class="orderBySelect"
+            name="orderBy"
+            colorClass="pink3"
+            :items="this.orderBySelectI"
+            :initialOptValue="this.initialOrderBy"
+          />
+          <SelectC id="orderByAscSelect"
+            ref="orderByAscSelect"
+            class="orderByAscSelect"
+            name="orderByAsc"
+            colorClass="pink3"
+            :items="this.orderByAscSelectI"
+            :initialOptValue="this.initialOrderByAsc"
+          />
+        </div>
+      </div>
     </div>
 
     <div class='buttonsWrapper'>
@@ -180,13 +205,24 @@ export default {
   data() {
     return {
       cliNameSelectItems: [],
-
       tableSalesData: {
         'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
         'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
         'colWidths': [ '10%', '22%', '18%', '18%', '10%', '10%', '6%', '6%' ],
         'content': []
       },
+      orderBySelectI: [
+        { label: 'Código' , value: 'sale_id' },
+        { label: 'Data e Hora de Geração' , value: 'sale_creation_date_time' },
+        { label: 'Forma de Pagamento' , value: 'payment_method_name' },
+        { label: 'Nome do Cliente' , value: 'sale_client_name' },
+        { label: 'Status' , value: 'sale_status' },
+        { label: 'Valor Final' , value: 'sale_total_value' },
+      ],
+      orderByAscSelectI: [
+        { label: '▲' , value: 1 },
+        { label: '▼' , value: 0 }
+      ],
 
       initialSaleId: null,
       initialCreationStart: null,
@@ -195,6 +231,8 @@ export default {
       initialSaleStatus: null,
       initialTotalValueStart: null,
       initialTotalValueEnd: null,
+      initialOrderBy: null,
+      initialOrderByAsc: null,
       
       actualPage: 1,
       maxPages: 1,
@@ -206,6 +244,8 @@ export default {
       saleStatus: null,
       totalValueStart: null,
       totalValueEnd: null,
+      orderBy: 'sale_creation_date_time',
+      orderByAsc: 0,
 
       salesIds: [],
       filtered: false,
@@ -220,7 +260,7 @@ export default {
     // clients names
     let vreturn = await this.$root.doRequest(
       Requests.getClients,
-      [ true, null, null, null, null, null, null, null, null ]
+      [ true, null, null, null, null, null, null, null, null, null, null ]
     );
 
     if(vreturn && vreturn['ok'] && vreturn['response']){
@@ -234,7 +274,7 @@ export default {
 
     let params = this.loadSessionParams();
     if(params == null){
-      await this.loadSales(this.defLimit, 0);
+      await this.loadSales(this.defLimit, 0, 'sale_creation_date_time', 0);
     }
     else{
       // set initial element values before async rendering
@@ -247,11 +287,15 @@ export default {
       this.initialSaleStatus = params['saleStatus'];
       this.initialTotalValueStart = params['totalValueStart'] ? Utils.getCurrencyFormat(params['totalValueStart']) : null;
       this.initialTotalValueEnd = params['totalValueEnd'] ? Utils.getCurrencyFormat(params['totalValueEnd']) : null;
+      this.initialOrderBy = params['orderBy'];
+      this.initialOrderByAsc = params['orderByAsc'];
 
       // load sales
       await this.loadSales( 
         params['defLimit'],
         params['actualPage']*10,
+        params['orderBy'],
+        params['orderByAsc'],
         params['saleId'],
         params['clientName'],
         params['creationDateTimeStart'],
@@ -266,14 +310,14 @@ export default {
 
   methods:{
 
-    async loadSales(limit, offset, saleId=null, clientName=null, creationDateTimeStart=null, creationDateTimeEnd=null, saleStatus=null, totalValueStart=null, totalValueEnd=null){
+    async loadSales(limit, offset,  orderBy, orderByAsc, saleId=null, clientName=null, creationDateTimeStart=null, creationDateTimeEnd=null, saleStatus=null, totalValueStart=null, totalValueEnd=null){
 
       this.clientIds = [];
       this.tableSalesData['content'] = [];
       
       let vreturn = await this.$root.doRequest(
         Requests.getSales,
-        [ limit, offset, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd ]
+        [ limit, offset, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sales']){
@@ -309,6 +353,8 @@ export default {
         this.saleStatus = saleStatus;
         this.totalValueStart = totalValueStart;
         this.totalValueEnd = totalValueEnd;
+        this.orderBy = orderBy;
+        this.orderByAsc = orderByAsc;
 
         // checks if it was filtered
         if(this.saleId ||
@@ -317,7 +363,9 @@ export default {
           this.creationDateTimeEnd ||
           this.saleStatus ||
           this.totalValueStart ||
-          this.totalValueEnd
+          this.totalValueEnd ||
+          this.orderBy != 'sale_creation_date_time' ||
+          this.orderByAsc != 0
         ){
           this.filtered = true;
         }
@@ -340,12 +388,14 @@ export default {
       let creationDateTimeEnd = this.$refs.creationDateTimeEndInput.getV();
       let totalValueStart = Utils.getNumberFormatFromCurrency(this.$refs.startTotalPriceInput.getV());
       let totalValueEnd = Utils.getNumberFormatFromCurrency(this.$refs.endTotalPriceInput.getV());
+      let orderBy = this.$refs.orderBySelect.getV();
+      let orderByAsc = this.$refs.orderByAscSelect.getV();
 
       saleId = saleId.replace('VENDA-', '');
       totalValueStart = totalValueStart ? totalValueStart : null;
       totalValueEnd = totalValueEnd ? totalValueEnd : null;
 
-      await this.loadSales(this.defLimit, 0, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, null, totalValueStart, totalValueEnd);
+      await this.loadSales(this.defLimit, 0, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, null, totalValueStart, totalValueEnd);
     },
 
     async cleanFilter(){
@@ -356,8 +406,10 @@ export default {
       this.$refs.creationDateTimeEndInput.setV('');
       this.$refs.startTotalPriceInput.setV('');
       this.$refs.endTotalPriceInput.setV('');
+      this.$refs.orderBySelect.setV('sale_creation_date_time');
+      this.$refs.orderByAscSelect.setV(0);
 
-      await this.loadSales(this.defLimit, 0);
+      await this.loadSales(this.defLimit, 0, 'sale_creation_date_time', 0);
     },
 
     async previousSalePage(){
@@ -365,6 +417,8 @@ export default {
       await this.loadSales( 
         this.defLimit,
         (this.actualPage-2)*10,
+        this.orderBy,
+        this.orderByAsc,
         this.saleId,
         this.clientName,
         this.creationDateTimeStart,
@@ -379,6 +433,8 @@ export default {
       await this.loadSales( 
         this.defLimit, 
         this.actualPage*10,
+        this.orderBy,
+        this.orderByAsc,
         this.saleId,
         this.clientName,
         this.creationDateTimeStart,
@@ -442,7 +498,9 @@ export default {
         'creationDateTimeEnd': this.creationDateTimeEnd,
         'saleStatus': this.saleStatus,
         'totalValueStart': this.totalValueStart,
-        'totalValueEnd': this.totalValueEnd
+        'totalValueEnd': this.totalValueEnd,
+        'orderBy': this.orderBy,
+        'orderByAsc': this.orderByAsc
       };
       ClientStorage.setSessionItem('saleListParams', JSON.stringify(params));
     }
@@ -478,7 +536,7 @@ export default {
     display: inline-block;
     margin: 0px;
   }
-  .row1Left, .row2Left{
+  .row1Left, .row2Left, .row3Left{
     text-align: left;
   }
   .row1Right, .row2Right{
@@ -502,6 +560,12 @@ export default {
   .startTotalPriceInput, .endTotalPriceInput{
     width: 100px;
   }
+  .orderBySelect{
+    width: 260px;
+  }
+  .orderByAscSelect{
+    width: 50px;
+  }
   .filterButton, .clearFilterButton{
     display: inline-block;
     width: 20%;
@@ -520,6 +584,14 @@ export default {
   .pinput, .pselect{
     display: block;
     width: 100%;
+  }
+  .orderBySelect{
+    display: inline-block;
+    width: 85%;
+  }
+  .orderByAscSelect{
+    display: inline-block;
+    width: 15%;
   }
   .filterButton, .clearFilterButton{
     display: block;
