@@ -142,20 +142,20 @@
 
       <div class="pageSectionRow">
         <div class="row4Left">
-          <LabelC for="quantitySelect"
+          <LabelC for="quantityInput"
             labelText="Quantidade"
             class="plabel leftLabel"
             useRequiredChar
           />
-          <SelectWithFilter :key="quantitySelectKeyToReRender"
-            id="quantitySelect"
-            ref="quantitySelect"
-            class="pselect quantitySelect"
-            colorClass="pink3"
+          <InputC
+            id="quantityInput"
+            ref="quantityInput"
+            class="pinput quantityInput"
             name="quantity"
-            :inputDisabled="this.quantityDisabled"
-            :items="this.quantitySelectItems"
-            :initialOptValue="0"
+            type="number"
+            min="1"
+            colorClass="pink3"
+            :disabled="this.quantityDisabled"
           />
         </div>
 
@@ -295,7 +295,6 @@ export default {
       sizeSelectItems: [],
       colorSelectItems: [],
       othersSelectItems: [],
-      quantitySelectItems: [],
 
       tableProductsData: {
         'titles': [ 'Código', 'Nome', 'Tamanho', 'Cor', 'Outros', 'Valor', 'Quantidade', 'Remover' ],
@@ -323,7 +322,6 @@ export default {
       othersSelectKeyToReRender: 5000,
       productkeyToReRender: 6000,
       saleKeyToReRender: 7000,
-      quantitySelectKeyToReRender: 8000,
 
       loadedProdInfo: null,
       loadedSaleInfo: null,
@@ -348,47 +346,47 @@ export default {
     // loads clients products and sale infos
     async loadPageInfo(){
 
-    // clients
-    let vreturn = await this.$root.doRequest(
-      Requests.getClients,
-      [ true, null, null, null, null, null, null, null, null, null, null ]
-    );
+      // clients
+      let vreturn = await this.$root.doRequest(
+        Requests.getClients,
+        [ true, null, null, null, null, null, null, null, null, null, null ]
+      );
 
-    if(vreturn && vreturn['ok'] && vreturn['response']){
-      let loadedClients = vreturn['response']['clients'];
-      this.cliNameSelectItems = loadedClients.map(x => ({'label': x['client_name'], 'value': x['client_id'], 'cpf': x['client_cpf']}));
-    }
-    else{
-      this.$root.renderRequestErrorMsg(vreturn, []);
-      this.$root.renderView('home');
-    }
+      if(vreturn && vreturn['ok'] && vreturn['response']){
+        let loadedClients = vreturn['response']['clients'];
+        this.cliNameSelectItems = loadedClients.map(x => ({'label': x['client_name'], 'value': x['client_id'], 'cpf': x['client_cpf']}));
+      }
+      else{
+        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderView('home');
+      }
 
-    // products
-    vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
+      // products
+      vreturn = await this.$root.doRequest( Requests.getProductInfo, [] );
 
-    if(vreturn && vreturn['ok'] && vreturn['response']){
-      this.loadedProdInfo = vreturn['response'];
+      if(vreturn && vreturn['ok'] && vreturn['response']){
+        this.loadedProdInfo = vreturn['response'];
 
-      this.nameSelectItems = this.loadedProdInfo['products'].map(x => ({'label': x['product_name'], 'value': x['product_id']}));
-      this.codeSelectItems = this.loadedProdInfo['products'].map(x => ({'label': x['product_code'], 'value': x['product_id']}));
-    }
-    else{
-      this.$root.renderRequestErrorMsg(vreturn, []);
-      this.$root.renderView('home');
-    }
+        this.nameSelectItems = this.loadedProdInfo['products'].map(x => ({'label': x['product_name'], 'value': x['product_id']}));
+        this.codeSelectItems = this.loadedProdInfo['products'].map(x => ({'label': x['product_code'], 'value': x['product_id']}));
+      }
+      else{
+        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderView('home');
+      }
 
-    // sale
-    vreturn = await this.$root.doRequest( Requests.getSaleInfo, [] );
+      // sale
+      vreturn = await this.$root.doRequest( Requests.getSaleInfo, [] );
 
-    if(vreturn && vreturn['ok'] && vreturn['response']){
-      this.loadedSaleInfo = vreturn['response'];
-    }
-    else{
-      this.$root.renderRequestErrorMsg(vreturn, []);
-      this.$root.renderView('home');
-    }
-    this.loadSaleTablePaymentMethods();
-    this.updateSaleTable();
+      if(vreturn && vreturn['ok'] && vreturn['response']){
+        this.loadedSaleInfo = vreturn['response'];
+      }
+      else{
+        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.$root.renderView('home');
+      }
+      this.loadSaleTablePaymentMethods();
+      this.updateSaleTable();
     },
 
     // reutilize sale
@@ -487,15 +485,15 @@ export default {
 
       // checks size
       if(this.sizeSelectItems && this.sizeSelectItems.length > 0 && (sizeLabel == null || sizeLabel == undefined)){
-        this.quantitySelectItems = [{ 'label': 'Campo tamanho vazio', 'value': 0 }];
+        this.$refs['quantityInput'].setPlaceholder('Campo tamanho vazio');
       }
       // checks color
       else if(this.colorSelectItems && this.colorSelectItems.length > 0 && (colorLabel == null || colorLabel == undefined)){
-        this.quantitySelectItems = [{ 'label': 'Campo cor vazio', 'value': 0 }];
+        this.$refs['quantityInput'].setPlaceholder('Campo cor vazio', 'value');
       }
       // checks other
       else if(this.othersSelectItems && this.othersSelectItems.length > 0 && (otherLabel == null || otherLabel == undefined)){
-        this.quantitySelectItems = [{ 'label': 'Campo outro vazio', 'value': 0 }];
+        this.$refs['quantityInput'].setPlaceholder('Campo outro vazio', 'value');
       }
       // set quantity and price searching in actualCustomizedProducts
       else{
@@ -506,34 +504,25 @@ export default {
             this.actualCustomizedProducts[i]['product_other_name'] == otherLabel){
             
             foundCP = true;
+            let actualQuantity = this.actualCustomizedProducts[i]['product_quantity'];
 
-            if(this.actualCustomizedProducts[i]['product_quantity'] <= 0){
-              this.quantitySelectItems = [{ 'label': 'Variação sem estoque', 'value': 0 }];
-            }
-            else{
-              // quantity
-              this.quantitySelectItems = [];
-              for (let j = 1; j <= this.actualCustomizedProducts[i]['product_quantity']; j++) {
-                this.quantitySelectItems.push({ 'label': j.toString(), 'value': j });
-              };
-              this.quantityDisabled = false;
-              
-
-              // price
-              this.$refs['priceInput'].setV(Utils.getCurrencyFormat(this.actualCustomizedProducts[i]['product_price']));
-            }
+            // quantity
+            this.$refs['quantityInput'].setPlaceholder( `${actualQuantity == 0 ? 'Nenhuma' : actualQuantity} ${actualQuantity <= 1 ? 'peça' : 'peças'} em estoque`);
+            this.quantityDisabled = false;
+            
+            // price
+            this.$refs['priceInput'].setV(Utils.getCurrencyFormat(this.actualCustomizedProducts[i]['product_price']));
           }
         }
         if(!foundCP){
-          this.quantitySelectItems = [{ 'label': 'Variação não encontrada', 'value': 0 }];
+          this.$refs['quantityInput'].setPlaceholder('Variação não encontrada');
         }
       }
-      this.quantitySelectKeyToReRender++;
     },
     resetProductQuantityPrice(){
-      this.quantitySelectItems = [];
+      this.$refs['quantityInput'].setPlaceholder('');
+      this.$refs['quantityInput'].setV('');
       this.quantityDisabled = true;
-      this.quantitySelectKeyToReRender++;
       this.$refs['priceInput'].setV('');
     },
     addProduct(){
@@ -542,11 +531,11 @@ export default {
       let sizeObj = this.$refs['sizeSelect'].getObj();
       let colorObj = this.$refs['colorSelect'].getObj();
       let otherObj = this.$refs['othersSelect'].getObj();
-      let quantityObj = this.$refs['quantitySelect'].getObj();
+      let quantity = this.$refs['quantityInput'].getV();
       let price = this.$refs['priceInput'].getV();
 
-      if(!quantityObj || !quantityObj['value'] || quantityObj['value'] <= 0){
-        this.$root.renderMsg('warn', 'Quantidade inválida!', 'Quantidade deve ser maior que 0');
+      if(quantity == null || isNaN(quantity) || quantity <= 0){
+        this.$root.renderMsg('warn', 'Quantidade inválida!', 'Quantidade deve ser um número maior que 0');
         return;
       }
       if(!price || Utils.getNumberFormatFromCurrency(price) <= 0){
@@ -556,7 +545,7 @@ export default {
 
       this.addProductToTable(
         nameObj['label'], codeObj['label'], sizeObj['label'], (colorObj ? colorObj['label'] : ''), 
-        (otherObj ? otherObj['label'] : ''), quantityObj['label'], price);
+        (otherObj ? otherObj['label'] : ''), quantity, price);
     },
     addProductToTable(name, code, size, color, other, quantity, price){
 
@@ -738,6 +727,7 @@ export default {
 
       let saleHasProducts = [];
       let saleProductsTmp = {};
+      let missingProductMsgs = [];
       // get product data from saleCustomizedProducts by code as key and find personalized product
       productsData.forEach((productFromTable) => {
 
@@ -746,6 +736,7 @@ export default {
         for(let i = 0; i < productData['customized_products'].length; i++){
           let customProductData = productData['customized_products'][i];
 
+          // find specific personalization
           if(
             productFromTable[2] == customProductData['product_size_name'] &&
             productFromTable[3] == (customProductData['product_color_name'] ? customProductData['product_color_name'] : '') &&
@@ -758,6 +749,16 @@ export default {
               'customized_product_id': customProductData['customized_product_id'],
               'customized_product_price': Utils.getNumberFormatFromCurrency(productFromTable[5]),
               'customized_product_sale_quantity': Number(productFromTable[6])
+            }
+            // check and creates messages if is missing products in stock
+            if(Number(productFromTable[6]) > customProductData['product_quantity']){
+              let missingQuantity = Number(productFromTable[6])-customProductData['product_quantity'];
+              missingProductMsgs.push(
+                '   ' + String(missingQuantity) + ' ' + String(productFromTable[1]) + 
+                ', tamanho: ' + productFromTable[2] +
+                (productFromTable[3] ? ', cor: ' + productFromTable[3] : '') +
+                (productFromTable[4] ? ', outro: ' + productFromTable[4] : '')
+              );
             }
           }
         }
@@ -778,14 +779,23 @@ export default {
 
       });
 
+      let forceProductAddition = false;
+      if(missingProductMsgs.length > 0){
+        missingProductMsgs.unshift('Ao confirmar será efetuado a venda após ser adicionado estes produtos que estão faltando no estoque:');
+        forceProductAddition = await this.$root.renderMsg('warn', 'Confirmar adição de produtos?', missingProductMsgs, null, function(){}, function(){}, true);
+        if(!forceProductAddition){
+          return;
+        }
+      }
+
       let vreturn = await this.$root.doRequest(
         Requests.createSale,
-        [clientId, employeeId, methodInstallmentId, discountPercentage, totalValue, saleHasProducts]
+        [clientId, employeeId, methodInstallmentId, discountPercentage, totalValue, saleHasProducts, forceProductAddition]
       );
 
       if(vreturn && vreturn['ok']){
         let self = this;
-        this.$root.renderMsg('ok', 'Sucesso!', 'Venda cadastrada.', function () { self.$router.go(); });
+        this.$root.renderMsg('ok', 'Sucesso!', (forceProductAddition ? 'Produtos adicionados e venda cadastrada.' : 'Venda cadastrada.'), function () { self.$router.go(); });
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, [
@@ -819,7 +829,7 @@ export default {
       this.$refs.sizeSelect.setV('');
       this.$refs.colorSelect.setV('');
       this.$refs.othersSelect.setV('');
-      this.$refs.quantitySelect.setV('');
+      this.$refs.quantityInput.setV('');
       this.$refs.priceInput.setV('');
       
       this.tableProductsData['content'] = [];
@@ -883,7 +893,7 @@ export default {
   .cliNameSelect, .nameSelect{
     width: 60%;
   }
-  .quantitySelect{
+  .quantityInput{
     width: calc(90% - 115px);
   }
   .cliCpfInput, .codeSelect{

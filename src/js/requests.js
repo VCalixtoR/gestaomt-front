@@ -686,6 +686,7 @@ async function createSale(token_jwt, args){
   jsonBody['sale_total_discount_percentage'] = args[3];
   jsonBody['sale_total_value'] = args[4];
   jsonBody['sale_has_products'] = args[5];
+  jsonBody['force_product_addition'] = args[6];
 
   var myHeaders = {
     method: 'PUT',
