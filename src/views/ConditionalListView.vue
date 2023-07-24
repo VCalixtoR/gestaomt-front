@@ -436,6 +436,8 @@ export default {
         await this.loadConditionals( 
           this.defLimit,
           (this.actualPage-1)*10,
+          this.orderBy,
+          this.orderByAsc,
           this.conditionalId,
           this.clientName,
           this.conditionalStatus,

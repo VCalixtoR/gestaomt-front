@@ -460,6 +460,8 @@ export default {
         await this.loadSales( 
           this.defLimit,
           (this.actualPage-1)*10,
+          this.orderBy,
+          this.orderByAsc,
           this.saleId,
           this.clientName,
           this.creationDateTimeStart,
