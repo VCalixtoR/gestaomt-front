@@ -106,7 +106,7 @@ export default {
   },
 
   mounted(){
-    if(this.initialOptValue != null){
+    if(this.initialOptValue != null && this.initialOptValue != undefined){
       for(let i = 0; i < this.items.length; i++){
         if(this.items[i].value == this.initialOptValue){
           this.actualOptSelected = i;
@@ -128,7 +128,7 @@ export default {
     },
     setV(value){
 
-      if(!value){
+      if(value == null || value == undefined){
         this.actualOptSelected = 0;
       }
       else{

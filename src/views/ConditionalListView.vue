@@ -87,6 +87,31 @@
           />
         </div>
       </div>
+
+      <div class="filterRow">
+        <div class="row3Left">
+          <LabelC for="orderBySelect"
+            labelText="Ordenar por:"
+            class="plabel"
+          />
+          <SelectC id="orderBySelect"
+            ref="orderBySelect"
+            class="orderBySelect"
+            name="orderBy"
+            colorClass="pink3"
+            :items="this.orderBySelectI"
+            :initialOptValue="this.initialOrderBy"
+          />
+          <SelectC id="orderByAscSelect"
+            ref="orderByAscSelect"
+            class="orderByAscSelect"
+            name="orderByAsc"
+            colorClass="pink3"
+            :items="this.orderByAscSelectI"
+            :initialOptValue="this.initialOrderByAsc"
+          />
+        </div>
+      </div>
     </div>
 
     <div class='buttonsWrapper'>
@@ -174,19 +199,30 @@ export default {
         { label: 'Devolvido', value: 'Devolvido' },
         { label: 'Cancelado', value: 'Cancelado' }
       ],
-
       tableConditionalsData: {
         'titles': [ 'Código', 'Nome do cliente', 'Data e hora de geração', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
         'colTypes': [ 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
         'colWidths': [ '10%', '25%', '20%', '19%', '13%', '13%' ],
         'content': []
       },
+      orderBySelectI: [
+        { label: 'Código' , value: 'conditional_id' },
+        { label: 'Data e Hora de Geração' , value: 'conditional_creation_date_time' },
+        { label: 'Nome do Cliente' , value: 'conditional_client_name' },
+        { label: 'Status' , value: 'conditional_status' }
+      ],
+      orderByAscSelectI: [
+        { label: '▲' , value: 1 },
+        { label: '▼' , value: 0 }
+      ],
 
       initialConditionalId: null,
       initialCreationStart: null,
       initialCreationEnd: null,
       initialCliName: null,
       initialConditionalStatus: null,
+      initialOrderBy: null,
+      initialOrderByAsc: null,
 
       actualPage: 1,
       maxPages: 1,
@@ -196,6 +232,8 @@ export default {
       conditionalStatus: null,
       creationDateTimeStart: null,
       creationDateTimeEnd: null,
+      orderBy: 'conditional_creation_date_time',
+      orderByAsc: 0,
 
       conditionalIds: [],
       conditionalStatusTmp: [],
@@ -211,7 +249,7 @@ export default {
     // clients names
     let vreturn = await this.$root.doRequest(
       Requests.getClients,
-      [ true, null, null, null, null, null, null, null, null ]
+      [ true, null, null, null, null, null, null, null, null, null, null ]
     );
 
     if(vreturn && vreturn['ok'] && vreturn['response']){
@@ -225,7 +263,7 @@ export default {
 
     let params = this.loadSessionParams();
     if(params == null){
-      await this.loadConditionals(this.defLimit, 0);
+      await this.loadConditionals(this.defLimit, 0, 'conditional_creation_date_time', 0);
     }
     else{
       // set initial element values before async rendering
@@ -236,11 +274,15 @@ export default {
       this.initialConditionalStatus = params['conditionalStatus'];
       this.initialCreationStart = params['creationDateTimeStart'];
       this.initialCreationEnd = params['creationDateTimeEnd'];
+      this.initialOrderBy = params['orderBy'];
+      this.initialOrderByAsc = params['orderByAsc'];
 
       // load conditionals
       await this.loadConditionals( 
         params['defLimit'], 
         params['actualPage']*10,
+        params['orderBy'],
+        params['orderByAsc'],
         params['conditionalId'],
         params['clientName'],
         params['conditionalStatus'],
@@ -253,14 +295,14 @@ export default {
 
   methods:{
 
-    async loadConditionals(limit, offset, conditionalId=null, clientName=null, conditionalStatus=null, creationDateTimeStart=null, creationDateTimeEnd=null){
+    async loadConditionals(limit, offset,  orderBy, orderByAsc, conditionalId=null, clientName=null, conditionalStatus=null, creationDateTimeStart=null, creationDateTimeEnd=null){
 
       this.clientIds = [];
       this.tableConditionalsData['content'] = [];
       
       let vreturn = await this.$root.doRequest(
-        Requests.getConditionals,
-        [ limit, offset, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd ]
+        Requests.getConditionals, 
+        [ limit, offset, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['conditionals']){
@@ -296,13 +338,17 @@ export default {
         this.conditionalStatus = conditionalStatus;
         this.creationDateTimeStart = creationDateTimeStart;
         this.creationDateTimeEnd = creationDateTimeEnd;
+        this.orderBy = orderBy;
+        this.orderByAsc = orderByAsc;
 
         // checks if it was filtered
         if(this.conditionalId || 
           this.clientName ||
           this.conditionalStatus ||
           this.creationDateTimeStart ||
-          this.creationDateTimeEnd
+          this.creationDateTimeEnd ||
+          this.orderBy != 'conditional_creation_date_time' ||
+          this.orderByAsc != 0
         ){
           this.filtered = true;
         }
@@ -324,10 +370,12 @@ export default {
       let conditionalStatus = this.$refs.statusSelect.getV();
       let creationDateTimeStart = this.$refs.creationDateTimeStartInput.getV();
       let creationDateTimeEnd = this.$refs.creationDateTimeEndInput.getV();
+      let orderBy = this.$refs.orderBySelect.getV();
+      let orderByAsc = this.$refs.orderByAscSelect.getV();
       
       conditionalId = conditionalId.replace('COND-', '');
 
-      await this.loadConditionals(this.defLimit, 0, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd);
+      await this.loadConditionals(this.defLimit, 0, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd);
     },
 
     async cleanFilter(){
@@ -337,8 +385,10 @@ export default {
       this.$refs.statusSelect.setV('');
       this.$refs.creationDateTimeStartInput.setV('');
       this.$refs.creationDateTimeEndInput.setV('');
+      this.$refs.orderBySelect.setV('conditional_creation_date_time');
+      this.$refs.orderByAscSelect.setV(1);
       
-      await this.loadConditionals(this.defLimit, 0);
+      await this.loadConditionals(this.defLimit, 0, 'conditional_creation_date_time', 0);
     },
 
     async previousConditionalPage(){
@@ -346,6 +396,8 @@ export default {
       await this.loadConditionals( 
         this.defLimit,
         (this.actualPage-2)*10,
+        this.orderBy,
+        this.orderByAsc,
         this.conditionalId,
         this.clientName,
         this.conditionalStatus,
@@ -359,6 +411,8 @@ export default {
       await this.loadConditionals( 
         this.defLimit, 
         this.actualPage*10,
+        this.orderBy,
+        this.orderByAsc,
         this.conditionalId,
         this.clientName,
         this.conditionalStatus,
@@ -417,6 +471,8 @@ export default {
         'conditionalStatus': this.conditionalStatus,
         'creationDateTimeStart': this.creationDateTimeStart,
         'creationDateTimeEnd': this.creationDateTimeEnd,
+        'orderBy': this.orderBy,
+        'orderByAsc': this.orderByAsc
       };
       ClientStorage.setSessionItem('conditionalListParams', JSON.stringify(params));
     }
@@ -452,7 +508,7 @@ export default {
     display: inline-block;
     margin: 0px;
   }
-  .row1Left, .row2Left{
+  .row1Left, .row2Left, .row3Left{
     text-align: left;
   }
   .row1Right, .row2Right{
@@ -476,6 +532,12 @@ export default {
   .statusSelect{
     width: 200px;
   }
+  .orderBySelect{
+    width: 260px;
+  }
+  .orderByAscSelect{
+    width: 50px;
+  }
   .filterButton, .clearFilterButton{
     display: inline-block;
     width: 20%;
@@ -494,6 +556,14 @@ export default {
   .pinput, .pselect{
     display: block;
     width: 100%;
+  }
+  .orderBySelect{
+    display: inline-block;
+    width: 85%;
+  }
+  .orderByAscSelect{
+    display: inline-block;
+    width: 15%;
   }
   .filterButton, .clearFilterButton{
     display: block;

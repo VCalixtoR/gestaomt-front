@@ -630,11 +630,13 @@ async function getConditionals(token_jwt, args){
   let querystring = parseQueryStrFromObj({
     'limit': args[0], 
     'offset': args[1],
-    'conditional_id': args[2],
-    'conditional_client_name': args[3],
-    'conditional_status': args[4],
-    'conditional_creation_date_time_start': args[5],
-    'conditional_creation_date_time_end': args[6]
+    'order_by': args[2],
+    'order_by_asc': args[3],
+    'conditional_id': args[4],
+    'conditional_client_name': args[5],
+    'conditional_status': args[6],
+    'conditional_creation_date_time_start': args[7],
+    'conditional_creation_date_time_end': args[8]
   });
 
   let vreturn = await baseRequestFBody(myHeaders, `conditionals${querystring}`);
