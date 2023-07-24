@@ -534,31 +534,32 @@ async function updateProduct(token_jwt, args){
 
 async function getProducts(token_jwt, args){
 
-  let limit = args[0];
-  let offset = args[1];
-
-  var querystring = `?limit=${limit}&offset=${offset}`;
-
-  if(args[2] != null && args[2] != '') querystring += `&product_code=${args[2]}`;
-  if(args[3] != null && args[3] != '') querystring += `&product_name=${args[3]}`;
-  if(args[4] != null && args[4] != '') querystring += `&product_color_id=${args[4]}`;
-  if(args[5] != null && args[5] != '') querystring += `&product_other_id=${args[5]}`;
-  if(args[6] != null && args[6] != '') querystring += `&product_size_id=${args[6]}`;
-  if(args[7] != null && args[7] != '') querystring += `&product_collection_id=${args[7]}`;
-  if(args[8] != null && args[8] != '') querystring += `&product_type_id=${args[8]}`;
-  if(args[9] != null && args[9] != '') querystring += `&product_quantity_initial=${args[9]}`;
-  if(args[10] != null && args[10] != '') querystring += `&product_quantity_final=${args[10]}`;
-  if(args[11] != null && args[12] != '') querystring += `&product_price_initial=${args[11]}`;
-  if(args[12] != null && args[11] != '') querystring += `&product_price_final=${args[12]}`;
-
-  var myHeaders = {
+  let myHeaders = {
     method: 'GET',
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Authorization': `Bearer ${token_jwt}`
     }
   }
-  
+
+  let querystring = parseQueryStrFromObj({
+    'limit': args[0],
+    'offset': args[1],
+    'order_by': args[2],
+    'order_by_asc': args[3],
+    'product_code': args[4],
+    'product_name': args[5],
+    'product_color_id': args[6],
+    'product_other_id': args[7],
+    'product_size_id': args[8],
+    'product_collection_id': args[9],
+    'product_type_id': args[10],
+    'product_quantity_initial': args[11],
+    'product_quantity_final': args[12],
+    'product_price_initial': args[13],
+    'product_price_final': args[14]
+  });
+
   let vreturn = await baseRequestFBody(myHeaders, `products${querystring}`);
   return vreturn;
 }

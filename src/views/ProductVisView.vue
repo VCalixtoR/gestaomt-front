@@ -188,6 +188,29 @@
             :initialOptValue="this.initialSizeSelectItem"
           />
         </div>
+
+        <div class="filterColRight">
+          <LabelC for="orderBySelect"
+            labelText="Ordenar por:"
+            class="orderByLabel"
+          />
+          <SelectC id="orderBySelect"
+            ref="orderBySelect"
+            class="orderBySelect"
+            name="orderBy"
+            colorClass="pink3"
+            :items="this.orderBySelectI"
+            :initialOptValue="this.initialOrderBy"
+          />
+          <SelectC id="orderByAscSelect"
+            ref="orderByAscSelect"
+            class="orderByAscSelect"
+            name="orderByAsc"
+            colorClass="pink3"
+            :items="this.orderByAscSelectI"
+            :initialOptValue="this.initialOrderByAsc"
+          />
+        </div>
       </div>
 
     </div>
@@ -273,7 +296,14 @@ export default {
         'colWidths': [ '15%', '25%', '20%', '35%', '5%' ],
         'content': []
       },
-
+      orderBySelectI: [
+        { label: 'Código' , value: 'product_code' },
+        { label: 'Nome' , value: 'product_name' }
+      ],
+      orderByAscSelectI: [
+        { label: '▲' , value: 1 },
+        { label: '▼' , value: 0 }
+      ],
       typeSelectItems: [],
       colorSelectItems: [],
       collectionSelectItems: [],
@@ -291,6 +321,8 @@ export default {
       initialTypeSelectItem: null,
       initialOtherSelectItem: null,
       initialSizeSelectItem: null,
+      initialOrderBy: null,
+      initialOrderByAsc: null,
 
       actualProductsPage: 1,
       maxProductsPages: 1,
@@ -306,6 +338,8 @@ export default {
       quantityEnd: '',
       priceStart: '',
       priceEnd: '',
+      orderBy: 'product_code',
+      orderByAsc: 1,
 
       showColorsInProductName: true,
       showOthersInProductName: true,
@@ -342,7 +376,7 @@ export default {
 
     let params = this.loadSessionParams();
     if(params == null){
-      await this.loadProducts(this.defLimit, 0);
+      await this.loadProducts(this.defLimit, 0, 'product_code', 1);
     }
     else{
       // set initial element values before async rendering
@@ -359,11 +393,15 @@ export default {
       this.initialSizeSelectItem = params['sizeId'];
       this.initialCollectionSelectItem = params['collectionId'];
       this.initialTypeSelectItem = params['typeId'];
+      this.initialOrderBy = params['orderBy'];
+      this.initialOrderByAsc = params['orderByAsc'];
 
       // load products
       await this.loadProducts(
         params['defLimit'],
         params['actualProductsPage']*10,
+        params['orderBy'],
+        params['orderByAsc'],
         params['code'],
         params['name'],
         params['colorId'],
@@ -383,15 +421,15 @@ export default {
 
   methods:{
 
-    async loadProducts(limit, offset, code=null, name=null, colorId=null, otherId=null, sizeId=null, collectionId=null, typeId=null,  
-      quantityStart=null, quantityEnd=null, priceStart=null, priceEnd=null){
+    async loadProducts(limit, offset, orderBy, orderByAsc, code=null, name=null, colorId=null, otherId=null, sizeId=null, 
+      collectionId=null, typeId=null, quantityStart=null, quantityEnd=null, priceStart=null, priceEnd=null){
 
       this.productCodes = [];
       this.tableProducts['content'] = [];
 
       let vreturn = await this.$root.doRequest(
         Requests.getProducts,
-        [ limit, offset, code, name, colorId, otherId, sizeId, collectionId, typeId, quantityStart, quantityEnd, priceStart, priceEnd ]
+        [ limit, offset, orderBy, orderByAsc, code, name, colorId, otherId, sizeId, collectionId, typeId, quantityStart, quantityEnd, priceStart, priceEnd ]
       );
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['products']){
@@ -457,6 +495,8 @@ export default {
         this.quantityEnd = quantityEnd;
         this.priceStart = priceStart;
         this.priceEnd = priceEnd;
+        this.orderBy = orderBy;
+        this.orderByAsc = orderByAsc;
 
         // checks if it was filtered
         if(this.code ||
@@ -469,7 +509,9 @@ export default {
           this.quantityStart ||
           this.quantityEnd ||
           this.priceStart ||
-          this.priceEnd 
+          this.priceEnd ||
+          this.orderBy != 'product_code' ||
+          this.orderByAsc != 1
         ){
           this.filtered = true;
         }
@@ -497,8 +539,10 @@ export default {
       let endQuantity = this.$refs.endQuantityInput.getV();
       let startPrice = Utils.getNumberFormatFromCurrency(this.$refs.startPriceInput.getV());
       let endPrice = Utils.getNumberFormatFromCurrency(this.$refs.endPriceInput.getV());
+      let orderBy = this.$refs.orderBySelect.getV();
+      let orderByAsc = this.$refs.orderByAscSelect.getV();
 
-      await this.loadProducts(this.defLimit, 0, code, name, colorId, otherId, sizeId, collectionId, typeId, 
+      await this.loadProducts(this.defLimit, 0, orderBy, orderByAsc, code, name, colorId, otherId, sizeId, collectionId, typeId, 
         startQuantity, endQuantity, startPrice, endPrice);
     },
 
@@ -515,8 +559,10 @@ export default {
       this.$refs.endQuantityInput.setV('');
       this.$refs.startPriceInput.setV('');
       this.$refs.endPriceInput.setV('');
+      this.$refs.orderBySelect.setV('product_code');
+      this.$refs.orderByAscSelect.setV(1);
 
-      await this.loadProducts(this.defLimit, 0);
+      await this.loadProducts(this.defLimit, 0, 'product_code', 1);
     },
 
     async previousProductPage(){
@@ -524,6 +570,8 @@ export default {
       await this.loadProducts(
         this.defLimit,
         (this.actualProductsPage-2)*10,
+        this.orderBy,
+        this.orderByAsc,
         this.code,
         this.name,
         this.colorId,
@@ -543,6 +591,8 @@ export default {
       await this.loadProducts(
         this.defLimit,
         this.actualProductsPage*10,
+        this.orderBy,
+        this.orderByAsc,
         this.code,
         this.name,
         this.colorId,
@@ -582,7 +632,9 @@ export default {
         'quantityStart': this.quantityStart,
         'quantityEnd': this.quantityEnd,
         'priceStart': this.priceStart,
-        'priceEnd': this.priceEnd
+        'priceEnd': this.priceEnd,
+        'orderBy': this.orderBy,
+        'orderByAsc': this.orderByAsc
       };
       ClientStorage.setSessionItem('prodVisParams', JSON.stringify(params));
     }
@@ -630,7 +682,7 @@ export default {
     text-align: right;
     width: 70px;
   }
-  .priceQuantityLabel{
+  .priceQuantityLabel, .orderByLabel{
     margin: 0px 7px;
   }
   .leftInput, .leftSelect{
@@ -641,6 +693,12 @@ export default {
   }
   .colorOtherSelect{
     width: calc(70% - 80px);
+  }
+  .orderBySelect{
+    width: 210px;
+  }
+  .orderByAscSelect{
+    width: 50px;
   }
   .filterButton, .clearFilterButton{
     display: inline-block;
@@ -657,7 +715,7 @@ export default {
     width: 100%;
     margin-left: 0px;
   }
-  .leftLabel, .colorOtherLabel{
+  .leftLabel, .colorOtherLabel, .orderByLabel{
     margin-top: 10px;
     display: block;
   }
@@ -683,6 +741,14 @@ export default {
   }
   .codeInput, .nameInput, .typeSelect, .colorSelect, .collectionSelect, .otherSelect, .sizeSelect{
     width: 100%;
+  }
+  .orderBySelect{
+    display: inline-block;
+    width: 85%;
+  }
+  .orderByAscSelect{
+    display: inline-block;
+    width: 15%;
   }
   .filterButton, .clearFilterButton{
     display: block;
