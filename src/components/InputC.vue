@@ -7,7 +7,7 @@
     :ref="this.id + '_IC'"
     :type="this.type"
     :maxlength="this.maxlength"
-    :placeholder="this.placeholder"
+    :placeholder="this.placeholderTmp"
     :autocomplete="this.autocomplete"
     :style="{
       'padding': this.padding,
@@ -26,7 +26,7 @@
     :ref="this.id + '_IC'"
     :type="this.type"
     :maxlength="this.maxlength"
-    :placeholder="this.placeholder"
+    :placeholder="this.placeholderTmp"
     :autocomplete="this.autocomplete"
     :style="{
       'padding': this.padding,
@@ -90,9 +90,18 @@ export default {
     }
   },
 
+  data() {
+    return {
+      placeholderTmp: ''
+    }
+  },
+
   mounted(){
     if(this.initialValue){
       this.setV(this.initialValue);
+    }
+    if(this.placeholder){
+      this.setPlaceholder(this.placeholder);
     }
   },
 
@@ -113,6 +122,9 @@ export default {
     },
     setV(value){
       this.$refs[this.id + '_IC'].value = value;
+    },
+    setPlaceholder(value){
+      this.placeholderTmp = value;
     }
   }
 }
@@ -124,6 +136,7 @@ export default {
 
 .inputc{
   border-radius: 5px;
+  text-align: center;
 }
 .inputc:focus{
   outline-width: 0;
