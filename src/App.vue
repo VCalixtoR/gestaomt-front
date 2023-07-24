@@ -64,7 +64,9 @@ export default {
       pageLoggedName: 'Home',
       pageParams: null,
       isJwtExpired: true,
-      jwt: null
+      jwt: null,
+      renderMsgButtonPressed: false,
+      renderMsgAccepted: true
     }
   },
 
@@ -109,7 +111,21 @@ export default {
         }
       }
     },
-    renderMsg(msgType, msgTitle, msgInfo, msgOkFunction = null, msgAcceptFunction = null, msgRejectFunction = null){
+
+    async waitRenderMsgButtonPress() {
+      let timeout = async ms => new Promise(res => setTimeout(res, ms));
+
+      this.renderMsgButtonPressed = false;
+      while (this.renderMsgButtonPressed === false){
+        await timeout(100);
+      }
+      this.renderMsgButtonPressed = false;
+    },
+    async finishWaitRenderMsgButtonPress(isAccepted){
+      this.renderMsgAccepted = isAccepted;
+      this.renderMsgButtonPressed = true;
+    },
+    async renderMsg(msgType, msgTitle, msgInfo, msgOkFunction = null, msgAcceptFunction = null, msgRejectFunction = null, awaitForClick = null){
       this.msgType = msgType;
       this.msgTitle = msgTitle;
       this.msgInfo = msgInfo;
@@ -120,6 +136,11 @@ export default {
       this.msgRejectFunction = msgRejectFunction;
       
       this.isMessageModalEnabled = true;
+
+      if(awaitForClick){
+        await this.waitRenderMsgButtonPress();
+        return this.renderMsgAccepted;
+      }
     },
     renderRequestErrorMsg(vreturn, knownMsgs){
 

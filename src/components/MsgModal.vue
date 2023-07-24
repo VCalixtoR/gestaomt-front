@@ -61,21 +61,21 @@
           label="Sim"
           padding="2px 20px"
           margin="0px 5px"
-          @click="this.$root.isMessageModalEnabled = false; this.$emit('accept')"
+          @click="this.$root.isMessageModalEnabled = false; this.$root.finishWaitRenderMsgButtonPress(true); this.$emit('accept')"
         />
         <ButtonC colorClass="pink3" v-if="this.msgReject"
           id="btnmsgrej"
           label="Não"
           padding="2px 20px"
           margin="0px 5px"
-          @click="this.$root.isMessageModalEnabled = false; this.$emit('reject')"
+          @click="this.$root.isMessageModalEnabled = false; this.$root.finishWaitRenderMsgButtonPress(false); this.$emit('reject')"
         />
         <ButtonC colorClass="pink3" v-if="!this.msgAccept && !this.msgReject"
           id="btnmsgok"
           label="OK"
           padding="2px 20px"
           margin="0px 5px"
-          @click="this.$root.isMessageModalEnabled = false; this.$emit('ok')"
+          @click="this.$root.isMessageModalEnabled = false; this.$root.finishWaitRenderMsgButtonPress(true); this.$emit('ok')"
         />
       </div>
 
