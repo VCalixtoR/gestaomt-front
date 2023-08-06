@@ -227,7 +227,6 @@ export default {
         'content': []
       },
       tableSummaryData: {
-        'single-title': 'Alterações em lote',
         'titles': [ 'Crédito', 'Débito', 'Cheque', 'Dinheiro', 'Pix', 'Total de vendas', 'Valor total' ],
         'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
         'colWidths': [ '15%', '14%', '14%', '14%', '14%', '14%', '15%' ],
