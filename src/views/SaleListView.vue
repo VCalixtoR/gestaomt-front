@@ -171,6 +171,21 @@
 
     </div>
 
+    <div class="tableSummaryRow">
+
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Resumo de vendas
+      </TextC>
+
+      <div class="tableSummaryWrapper">
+        <TablePink
+          class="tableSummary"
+          :tableData="this.tableSummaryData"
+        />
+      </div>
+
+      </div>
+
   </div>
 
 </template>
@@ -209,6 +224,13 @@ export default {
         'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
         'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
         'colWidths': [ '10%', '22%', '18%', '18%', '10%', '10%', '6%', '6%' ],
+        'content': []
+      },
+      tableSummaryData: {
+        'single-title': 'Alterações em lote',
+        'titles': [ 'Crédito', 'Débito', 'Cheque', 'Dinheiro', 'Pix', 'Total de vendas', 'Valor total' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
+        'colWidths': [ '15%', '14%', '14%', '14%', '14%', '14%', '15%' ],
         'content': []
       },
       orderBySelectI: [
@@ -343,6 +365,15 @@ export default {
             { 'showVisualize': true },
             { 'showPdf': true }]);
         });
+        this.tableSummaryData['content'].push([
+          vreturn['response']['summary']['credito'],
+          vreturn['response']['summary']['debito'],
+          vreturn['response']['summary']['cheque'],
+          vreturn['response']['summary']['dinheiro'],
+          vreturn['response']['summary']['pix'],
+          vreturn['response']['summary']['counts'],
+          Utils.getCurrencyFormat(vreturn['response']['summary']['total_value'])
+        ]);
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
         this.maxPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
@@ -523,10 +554,10 @@ export default {
 .plabel{
   margin: 0px 5px;
 }
-.tableSaleRow{
+.tableSaleRow, .tableSummaryRow{
   margin-top: 20px;
 }
-.tableSalesWrapper{
+.tableSalesWrapper, .tableSummaryWrapper{
   margin-top: 20px;
 }
 .buttonsWrapper{
@@ -574,7 +605,7 @@ export default {
     padding: 0px;
     margin-right: 20px;
   }
-  .tableSalesWrapper{
+  .tableSalesWrapper, .tableSummaryWrapper{
     text-align: center;
   }
 }
