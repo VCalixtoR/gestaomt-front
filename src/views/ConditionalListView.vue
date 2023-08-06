@@ -160,6 +160,21 @@
 
     </div>
 
+    <div class="tableSummaryRow">
+
+      <TextC colorClass="black1" fontSize='var(--text-title)'>
+        Resumo de Condicionais
+      </TextC>
+
+      <div class="tableSummaryWrapper">
+        <TablePink
+          class="tableSummary"
+          :tableData="this.tableSummaryData"
+        />
+      </div>
+
+    </div>
+
   </div>
 
 </template>
@@ -203,6 +218,12 @@ export default {
         'titles': [ 'Código', 'Nome do cliente', 'Data e hora de geração', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
         'colTypes': [ 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
         'colWidths': [ '10%', '25%', '20%', '19%', '13%', '13%' ],
+        'content': []
+      },
+      tableSummaryData: {
+        'titles': [ '', 'Cancelada', 'Devolvida', 'Pendente', 'Total' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string' ],
+        'colWidths': [ '24%', '19%', '19%', '19%', '19%' ],
         'content': []
       },
       orderBySelectI: [
@@ -299,6 +320,7 @@ export default {
 
       this.clientIds = [];
       this.tableConditionalsData['content'] = [];
+      this.tableSummaryData['content'] = [];
       
       let vreturn = await this.$root.doRequest(
         Requests.getConditionals, 
@@ -331,8 +353,25 @@ export default {
           ]);
         });
 
+        let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
+
+        this.tableSummaryData['content'].push([
+          'Quantidade',
+          vreturn['response']['summary']['canceled_quantity'],
+          vreturn['response']['summary']['returned_quantity'],
+          vreturn['response']['summary']['pending_quantity'],
+          vreturn['response']['summary']['total_quantity']
+        ]);
+        this.tableSummaryData['content'].push([
+          'Percentual da quantidade',
+          `${Math.round(vreturn['response']['summary']['canceled_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['returned_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['pending_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
+        ]);
+
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
+        this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
         this.conditionalId = conditionalId;
         this.clientName = clientName;
         this.conditionalStatus = conditionalStatus;
@@ -495,10 +534,10 @@ export default {
 .plabel{
   margin: 0px 5px;
 }
-.tableConditionalRow{
+.tableConditionalRow, .tableSummaryRow{
   margin-top: 20px;
 }
-.tableConditionalsWrapper{
+.tableConditionalsWrapper, .tableSummaryWrapper{
   margin-top: 20px;
 }
 .buttonsWrapper{
@@ -546,7 +585,7 @@ export default {
     padding: 0px;
     margin-right: 20px;
   }
-  .tableConditionalsWrapper{
+  .tableConditionalsWrapper, .tableSummaryWrapper{
     text-align: center;
   }
 }

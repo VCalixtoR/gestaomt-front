@@ -174,7 +174,7 @@
     <div class="tableSummaryRow">
 
       <TextC colorClass="black1" fontSize='var(--text-title)'>
-        Resumo de vendas
+        Resumo de Vendas
       </TextC>
 
       <div class="tableSummaryWrapper">
@@ -184,7 +184,7 @@
         />
       </div>
 
-      </div>
+    </div>
 
   </div>
 
@@ -227,7 +227,7 @@ export default {
         'content': []
       },
       tableSummaryData: {
-        'titles': [ 'Crédito', 'Débito', 'Cheque', 'Dinheiro', 'Pix', 'Total de vendas', 'Valor total' ],
+        'titles': [ '', 'Crédito', 'Débito', 'Cheque', 'Dinheiro', 'Pix', 'Total' ],
         'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
         'colWidths': [ '15%', '14%', '14%', '14%', '14%', '14%', '15%' ],
         'content': []
@@ -335,6 +335,7 @@ export default {
 
       this.clientIds = [];
       this.tableSalesData['content'] = [];
+      this.tableSummaryData['content'] = [];
       
       let vreturn = await this.$root.doRequest(
         Requests.getSales,
@@ -364,18 +365,49 @@ export default {
             { 'showVisualize': true },
             { 'showPdf': true }]);
         });
+
+        let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
+        let totalValue1P = vreturn['response']['summary']['total_value']/100;
+
         this.tableSummaryData['content'].push([
-          vreturn['response']['summary']['credito'],
-          vreturn['response']['summary']['debito'],
-          vreturn['response']['summary']['cheque'],
-          vreturn['response']['summary']['dinheiro'],
-          vreturn['response']['summary']['pix'],
-          vreturn['response']['summary']['counts'],
+          'Quantidade',
+          vreturn['response']['summary']['credito_quantity'],
+          vreturn['response']['summary']['debito_quantity'],
+          vreturn['response']['summary']['cheque_quantity'],
+          vreturn['response']['summary']['dinheiro_quantity'],
+          vreturn['response']['summary']['pix_quantity'],
+          vreturn['response']['summary']['total_quantity']
+        ]);
+        this.tableSummaryData['content'].push([
+          'Valor',
+          Utils.getCurrencyFormat(vreturn['response']['summary']['credito_value']),
+          Utils.getCurrencyFormat(vreturn['response']['summary']['debito_value']),
+          Utils.getCurrencyFormat(vreturn['response']['summary']['cheque_value']),
+          Utils.getCurrencyFormat(vreturn['response']['summary']['dinheiro_value']),
+          Utils.getCurrencyFormat(vreturn['response']['summary']['pix_value']),
           Utils.getCurrencyFormat(vreturn['response']['summary']['total_value'])
+        ]);
+        this.tableSummaryData['content'].push([
+          'Percentual da quantidade',
+          `${Math.round(vreturn['response']['summary']['credito_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['debito_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['cheque_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['dinheiro_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['pix_quantity']/totalQuantity1P)}%`,
+          `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
+        ]);
+        this.tableSummaryData['content'].push([
+          'Percentual do valor',
+          `${Math.round(vreturn['response']['summary']['credito_value']/totalValue1P)}%`,
+          `${Math.round(vreturn['response']['summary']['debito_value']/totalValue1P)}%`,
+          `${Math.round(vreturn['response']['summary']['cheque_value']/totalValue1P)}%`,
+          `${Math.round(vreturn['response']['summary']['dinheiro_value']/totalValue1P)}%`,
+          `${Math.round(vreturn['response']['summary']['pix_value']/totalValue1P)}%`,
+          `${Math.round(vreturn['response']['summary']['total_value']/totalValue1P)}%`
         ]);
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
+        this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
         this.saleId = saleId;
         this.clientName = clientName;
         this.creationDateTimeStart = creationDateTimeStart;
