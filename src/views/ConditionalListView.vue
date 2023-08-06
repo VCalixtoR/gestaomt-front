@@ -353,22 +353,25 @@ export default {
           ]);
         });
 
-        let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
+        if(vreturn['response']['summary']){
+          
+          let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
 
-        this.tableSummaryData['content'].push([
-          'Quantidade',
-          vreturn['response']['summary']['canceled_quantity'],
-          vreturn['response']['summary']['returned_quantity'],
-          vreturn['response']['summary']['pending_quantity'],
-          vreturn['response']['summary']['total_quantity']
-        ]);
-        this.tableSummaryData['content'].push([
-          'Percentual da quantidade',
-          `${Math.round(vreturn['response']['summary']['canceled_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['returned_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['pending_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
-        ]);
+          this.tableSummaryData['content'].push([
+            'Quantidade',
+            vreturn['response']['summary']['canceled_quantity'],
+            vreturn['response']['summary']['returned_quantity'],
+            vreturn['response']['summary']['pending_quantity'],
+            vreturn['response']['summary']['total_quantity']
+          ]);
+          this.tableSummaryData['content'].push([
+            'Percentual da quantidade',
+            `${Math.round(vreturn['response']['summary']['canceled_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['returned_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['pending_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
+          ]);
+        }
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
         this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);

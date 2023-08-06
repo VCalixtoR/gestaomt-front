@@ -366,45 +366,48 @@ export default {
             { 'showPdf': true }]);
         });
 
-        let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
-        let totalValue1P = vreturn['response']['summary']['total_value']/100;
+        if(vreturn['response']['summary']) {
 
-        this.tableSummaryData['content'].push([
-          'Quantidade',
-          vreturn['response']['summary']['credito_quantity'],
-          vreturn['response']['summary']['debito_quantity'],
-          vreturn['response']['summary']['cheque_quantity'],
-          vreturn['response']['summary']['dinheiro_quantity'],
-          vreturn['response']['summary']['pix_quantity'],
-          vreturn['response']['summary']['total_quantity']
-        ]);
-        this.tableSummaryData['content'].push([
-          'Valor',
-          Utils.getCurrencyFormat(vreturn['response']['summary']['credito_value']),
-          Utils.getCurrencyFormat(vreturn['response']['summary']['debito_value']),
-          Utils.getCurrencyFormat(vreturn['response']['summary']['cheque_value']),
-          Utils.getCurrencyFormat(vreturn['response']['summary']['dinheiro_value']),
-          Utils.getCurrencyFormat(vreturn['response']['summary']['pix_value']),
-          Utils.getCurrencyFormat(vreturn['response']['summary']['total_value'])
-        ]);
-        this.tableSummaryData['content'].push([
-          'Percentual da quantidade',
-          `${Math.round(vreturn['response']['summary']['credito_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['debito_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['cheque_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['dinheiro_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['pix_quantity']/totalQuantity1P)}%`,
-          `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
-        ]);
-        this.tableSummaryData['content'].push([
-          'Percentual do valor',
-          `${Math.round(vreturn['response']['summary']['credito_value']/totalValue1P)}%`,
-          `${Math.round(vreturn['response']['summary']['debito_value']/totalValue1P)}%`,
-          `${Math.round(vreturn['response']['summary']['cheque_value']/totalValue1P)}%`,
-          `${Math.round(vreturn['response']['summary']['dinheiro_value']/totalValue1P)}%`,
-          `${Math.round(vreturn['response']['summary']['pix_value']/totalValue1P)}%`,
-          `${Math.round(vreturn['response']['summary']['total_value']/totalValue1P)}%`
-        ]);
+          let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
+          let totalValue1P = vreturn['response']['summary']['total_value']/100;
+
+          this.tableSummaryData['content'].push([
+            'Quantidade',
+            vreturn['response']['summary']['credito_quantity'],
+            vreturn['response']['summary']['debito_quantity'],
+            vreturn['response']['summary']['cheque_quantity'],
+            vreturn['response']['summary']['dinheiro_quantity'],
+            vreturn['response']['summary']['pix_quantity'],
+            vreturn['response']['summary']['total_quantity']
+          ]);
+          this.tableSummaryData['content'].push([
+            'Valor',
+            Utils.getCurrencyFormat(vreturn['response']['summary']['credito_value']),
+            Utils.getCurrencyFormat(vreturn['response']['summary']['debito_value']),
+            Utils.getCurrencyFormat(vreturn['response']['summary']['cheque_value']),
+            Utils.getCurrencyFormat(vreturn['response']['summary']['dinheiro_value']),
+            Utils.getCurrencyFormat(vreturn['response']['summary']['pix_value']),
+            Utils.getCurrencyFormat(vreturn['response']['summary']['total_value'])
+          ]);
+          this.tableSummaryData['content'].push([
+            'Percentual da quantidade',
+            `${Math.round(vreturn['response']['summary']['credito_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['debito_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['cheque_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['dinheiro_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['pix_quantity']/totalQuantity1P)}%`,
+            `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
+          ]);
+          this.tableSummaryData['content'].push([
+            'Percentual do valor',
+            `${Math.round(vreturn['response']['summary']['credito_value']/totalValue1P)}%`,
+            `${Math.round(vreturn['response']['summary']['debito_value']/totalValue1P)}%`,
+            `${Math.round(vreturn['response']['summary']['cheque_value']/totalValue1P)}%`,
+            `${Math.round(vreturn['response']['summary']['dinheiro_value']/totalValue1P)}%`,
+            `${Math.round(vreturn['response']['summary']['pix_value']/totalValue1P)}%`,
+            `${Math.round(vreturn['response']['summary']['total_value']/totalValue1P)}%`
+          ]);
+        }
 
         this.actualPage = Math.ceil((offset+1)/this.defLimit);
         this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
