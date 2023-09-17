@@ -101,9 +101,9 @@ export default {
         'content': []
       },
       tableSaleData: {
-        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento', 'Parcelas' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string' ],
-        'colWidths': [ '12%', '13%', '12%', '15%', '15%', '18%', '15%' ],
+        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Formas de pagamento e Parcelas' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string-list' ],
+        'colWidths': [ '14%', '14%', '12%', '15%', '15%', '30%' ],
         'content': []
       },
       tableProductsData: {
@@ -149,14 +149,21 @@ export default {
     },
     loadSaleData(saleData){
       let saleRawValue = saleData['sale_total_value']/(1-saleData['sale_total_discount_percentage']);
+
+      let payment_method_names = saleData['payment_method_names'].split(',');
+      let payment_method_numbers = saleData['payment_method_installment_numbers'].split(',');
+      let payment_method_values = saleData['payment_method_values'].split(',');
+      let payment_methods = payment_method_names.map((payment_method_name, index) => (
+        `${payment_method_name} (${payment_method_numbers[index]} x ${Utils.getCurrencyFormat(Number(payment_method_values[index])/Number(payment_method_numbers[index]))})`
+      ));
+
       this.tableSaleData['content'] = [[
         `VEND-${saleData['sale_id']}`,
         `${Math.trunc(Number(saleData['sale_total_discount_percentage'])*100)}%`,
         Utils.getCurrencyFormat(saleRawValue-saleData['sale_total_value']),
         Utils.getCurrencyFormat(saleRawValue),
         Utils.getCurrencyFormat(saleData['sale_total_value']),
-        saleData['payment_method_name'],
-        `${saleData['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(saleData['sale_total_value']/Number(saleData['payment_method_Installment_number']))}`
+        payment_methods,
       ]];
     },
     loadProductsData(productsData){
