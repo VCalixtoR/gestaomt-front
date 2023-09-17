@@ -221,8 +221,8 @@ export default {
     return {
       cliNameSelectItems: [],
       tableSalesData: {
-        'titles': [ 'Código', 'Nome do cliente', 'Forma de pagamento', 'Data e hora de geração', 'Valor final', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'select', 'visualize', 'pdf' ],
+        'titles': [ 'Código', 'Nome do cliente', 'Formas de pagamento', 'Data e hora de geração', 'Valor final', 'Mudar Status', 'Visualizar', 'Gerar pdf' ],
+        'colTypes': [ 'string', 'string', 'string-list', 'string', 'string', 'select', 'visualize', 'pdf' ],
         'colWidths': [ '10%', '22%', '18%', '18%', '10%', '10%', '6%', '6%' ],
         'content': []
       },
@@ -344,13 +344,20 @@ export default {
 
       if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sales']){
         this.salesIds = [];
-
         vreturn['response']['sales'].forEach(sale => {
           this.salesIds.push(sale['sale_id']);
+
+          let payment_method_names = sale['payment_method_names'].split(',');
+          let payment_method_numbers = sale['payment_method_installment_numbers'].split(',');
+          let payment_method_values = sale['payment_method_values'].split(',');
+          let payment_methods = payment_method_names.map((payment_method_name, index) => (
+            `${payment_method_name} (${payment_method_numbers[index]} x ${Utils.getCurrencyFormat(Number(payment_method_values[index])/Number(payment_method_numbers[index]))})`
+          ));
+
           this.tableSalesData['content'].push([
             `VENDA-${sale['sale_id']}`,
             sale['sale_client_name'],
-            `${sale['payment_method_name']} (${sale['payment_method_Installment_number']} x ${Utils.getCurrencyFormat(Number(sale['sale_total_value'])/Number(sale['payment_method_Installment_number']))})`,
+            payment_methods,
             Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
             Utils.getCurrencyFormat(sale['sale_total_value']),
             {
