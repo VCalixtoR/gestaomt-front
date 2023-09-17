@@ -140,7 +140,7 @@ export default {
         'content': []
       },
       tableSales: {
-        'titles': [ 'Código', 'Nome do Cliente', 'Forma de pagamento', 'Data e Hora  de Geração', 'Valor Final', 'Comissão' ],
+        'titles': [ 'Código', 'Nome do Cliente', 'Formas de pagamento', 'Data e Hora  de Geração', 'Valor Final', 'Comissão' ],
         'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string' ],
         'colWidths': [ '12%', '29%', '23%', '14%', '11%', '11%'],
         'content': []
@@ -224,7 +224,7 @@ export default {
           this.tableSales['content'].push([
             'VEND-' + sale['sale_id'],
             sale['client_name'],
-            sale['payment_method_name'],
+            sale['payment_method_names'],
             saleCreationDate,
             Utils.getCurrencyFormat(sale['sale_total_value']),
             Utils.getCurrencyFormat(sale['sale_employee_comission'])
