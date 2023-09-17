@@ -128,7 +128,7 @@ export default {
     return {
       selectedEmployee: [],
       tableSummary: {
-        'titles': [ 'Forma de pagamento', 'Nº vendas', 'Valor total', 'Comissão total' ],
+        'titles': [ 'Forma de pagamento', 'Participação em vendas', 'Valor total', 'Comissão total' ],
         'colTypes': [ 'string', 'string', 'string', 'string' ],
         'colWidths': [ '30%', '18%', '26%', '26%' ],
         'content': []
@@ -173,9 +173,6 @@ export default {
 
       this.tableSummary['content'] = [];
       this.tableTotals['content'] = [];
-      var totalSales = 0;
-      var totalValue = 0.0;
-      var totalComission = 0.0;
 
       let vreturnSummary = await this.$root.doRequest(
         Requests.getEmployeeSalesSummary,
@@ -186,18 +183,21 @@ export default {
 
         vreturnSummary['response']['payments'].forEach(payment => {
 
+          // fills table summary
           this.tableSummary['content'].push([
             payment['payment_method_name'],
-            payment['payment_total_sales'],
-            Utils.getCurrencyFormat(payment['payment_total_sales_value']),
-            Utils.getCurrencyFormat(payment['payment_total_sales_comission_value'])
+            payment['payment_methods_count'],
+            Utils.getCurrencyFormat(payment['payment_methods_value']),
+            Utils.getCurrencyFormat(payment['payment_methods_comission_value'])
           ]);
-
-          totalSales += payment['payment_total_sales'];
-          totalValue += payment['payment_total_sales_value'];
-          totalComission += payment['payment_total_sales_comission_value'];
         });
-        this.tableTotals['content'].push([ totalSales, Utils.getCurrencyFormat(totalValue), Utils.getCurrencyFormat(totalComission) ]);
+
+        // fills table total
+        this.tableTotals['content'].push([
+          vreturnSummary['response']['sales']['sales_count'],
+          Utils.getCurrencyFormat(vreturnSummary['response']['sales']['sales_value']),
+          Utils.getCurrencyFormat(vreturnSummary['response']['sales']['sales_comission']),
+        ]);
       }
       else{
         this.$root.renderRequestErrorMsg(vreturnSummary, []);
