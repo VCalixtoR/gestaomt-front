@@ -231,6 +231,35 @@
           
         </div>
       </div>
+
+      <div class="pageSaleSection" v-show="this.tableProductsData['content'].length > 0">
+        
+        <TextC colorClass="black1" fontSize='var(--text-title)'>
+          Formas de Pagamento
+        </TextC>
+
+        <div class="pageSectionRow">
+
+          <div class="tableSalePaymentsWrapper">
+            <TablePink :key="salePaymentsKeyToReRender"
+              ref="tableSalePayments"
+              class="tableSalePayments"
+              :tableData="this.tableSalePaymentsData"
+              @optClicked="(optValue, rowN, colN) => this.updateSalePaymentsTable(optValue, rowN, colN)"
+              @tableInputChange="(inputValue, rowN, colN) => this.updateSalePaymentsTable(inputValue, rowN, colN)"
+              @reject="(rowN, colN) => this.cleanSalePaymentsR(rowN)"
+            />
+          </div>
+
+          <div class="btnplusWrapper">
+            <ButtonPlusC
+              id='btnPlusSalePayments'
+              @click="this.addSalePayment()"
+            />
+          </div>
+        
+        </div>
+      </div>
     </div>
 
     <div class="buttonsWrapper">
@@ -303,18 +332,22 @@ export default {
         'content': []
       },
       tableSaleData: {
-        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Forma de pagamento', 'Parcelas' ],
-        'colTypes': [ 'string', 'input', 'input', 'string', 'string', 'select', 'select' ],
-        'colWidths': [ '12%', '13%', '12%', '15%', '15%', '18%', '15%' ],
+        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto' ],
+        'colTypes': [ 'string', 'input', 'input', 'string', 'string' ],
+        'colWidths': [ '10%', '15%', '15%', '30%', '30%'],
         'content': [[
           '---',
           { 'type': 'text', 'mask': ['#%', '##%'], value: '0%' },
           { 'type': 'text', 'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##' ], value: 'R$ ' },
           'R$ 00,0',
-          'R$ 00,0',
-          { 'initialOptValue': "0", 'items': [{ label: '---', value: '0' }] },
-          { 'initialOptValue': "0", 'items': [{ label: '---', value: '0' }] }
+          'R$ 00,0'
         ]]
+      },
+      tableSalePaymentsData: {
+        'titles': [ 'Valor', 'Forma de pagamento', 'Parcelas', 'Remover'],
+        'colTypes': [ 'input', 'select', 'select', 'acceptReject' ],
+        'colWidths': [ '20%', '30%', '35%', '15%' ],
+        'content': []
       },
 
       sizeSelectKeyToReRender: 3000,
@@ -322,6 +355,7 @@ export default {
       othersSelectKeyToReRender: 5000,
       productkeyToReRender: 6000,
       saleKeyToReRender: 7000,
+      salePaymentsKeyToReRender: 8000,
 
       loadedProdInfo: null,
       loadedSaleInfo: null,
@@ -380,12 +414,20 @@ export default {
 
       if(vreturn && vreturn['ok'] && vreturn['response']){
         this.loadedSaleInfo = vreturn['response'];
+
+        // set paymentMethods without duplicants in list
+        this.paymentMethods = [];
+        this.loadedSaleInfo['payment_methods'].forEach((payment) => {
+          if(!this.paymentMethods.find(x => x['label'] == payment['payment_method_name'])){
+            this.paymentMethods.push({'label': payment['payment_method_name'], 'value': payment['payment_method_id']});
+          }
+        });
       }
       else{
         this.$root.renderRequestErrorMsg(vreturn, []);
         this.$root.renderView('home');
       }
-      this.loadSaleTablePaymentMethods();
+      //this.loadSaleTablePaymentMethods();
       this.updateSaleTable();
     },
 
@@ -590,28 +632,6 @@ export default {
       this.productkeyToReRender++;
       this.updateSaleTable();
     },
-    loadSaleTablePaymentMethods(){
-      let saleRow = this.tableSaleData['content'][0];
-      let paymentMethods = [];
-      // set paymentMethods without duplicants in list
-      this.loadedSaleInfo['payment_methods'].forEach((payment) => {
-        if(!paymentMethods.includes(payment['payment_method_name'])){
-          paymentMethods.push(payment['payment_method_name']);
-        }
-      });
-      // use list to create SaleTable select object
-      saleRow[5] = { 'initialOptValue': paymentMethods[0], 'items': [] };
-      paymentMethods.forEach((paymentName) => {
-        saleRow[5]['items'].push({ label: paymentName, value: paymentName });
-      });
-      // set installments
-      saleRow[6] = { 'initialOptValue': 1, 'items': [] };
-      this.loadedSaleInfo['payment_methods'].forEach((payment) => {
-        if(payment['payment_method_name'] == paymentMethods[0]){
-          saleRow[6]['items'].push({ label: payment['payment_method_Installment_number'], value: payment['payment_method_Installment_number'] });
-        }
-      });
-    },
     updateSaleTable(changeValue = null, rowN = null, colN = null){
 
       // stops updates from percent and price to avoid loops
@@ -666,43 +686,131 @@ export default {
       totalSaleValue = totalSaleRawValue - (discountValueRow ? Utils.getNumberFormatFromCurrency(discountValueRow) : 0);
       saleRow[4] = Utils.getCurrencyFormat(totalSaleValue);
 
-      // changes payment method and set new installments
-      if(colN == 5){
-        saleRow[5]['initialOptValue'] = changeValue;
-        saleRow[6] = { 'initialOptValue': 1, 'items': [] };
-        this.loadedSaleInfo['payment_methods'].forEach((payment) => {
-          if(payment['payment_method_name'] == saleRow[5]['initialOptValue']){
-            saleRow[6]['items'].push({ label: payment['payment_method_Installment_number'], value: payment['payment_method_Installment_number'] });
-          }
-        });
+      this.updateDefaultSingleSalePayment(Utils.getCurrencyFormat(totalSaleValue));
+    },
+
+    // sale payment handling
+    updateDefaultSingleSalePayment(totalSaleValue){
+      this.tableSalePaymentsData['content'] = [];
+      this.tableSalePaymentsData['content'].push(this.getSalePayment(totalSaleValue));
+
+      // forces component to rerender to resolve not updating issues
+      this.salePaymentsKeyToReRender = this.salePaymentsKeyToReRender + 1;
+    },
+    updateSalePaymentsTable(fieldValue, rowN, colN){
+      if(colN == 0 || colN == 1){
+        
+        let tableSalePaymentsV = this.$refs.tableSalePayments.getV();
+        
+        if(colN == 0){
+          this.tableSalePaymentsData['content'][rowN] = this.getSalePayment(fieldValue, tableSalePaymentsV[rowN][1]);
+        }
+        else{
+          let tableSalePaymentsV = this.$refs.tableSalePayments.getV();
+      
+          this.tableSalePaymentsData['content'] = [];
+          tableSalePaymentsV.forEach((tableSalePaymentsV, rowIndex) => {
+            if(rowIndex != rowN){
+              this.tableSalePaymentsData['content'].push(this.getSalePayment(tableSalePaymentsV[0], tableSalePaymentsV[1], tableSalePaymentsV[2]));
+            }
+            else{
+              this.tableSalePaymentsData['content'].push(this.getSalePayment(tableSalePaymentsV[0], fieldValue));
+            }
+          });
+          
+          // forces component to rerender to resolve not updating issues
+          this.salePaymentsKeyToReRender = this.salePaymentsKeyToReRender + 1;
+        }
       }
-      // changes installment
-      if(colN == 6){
-        saleRow[6]['initialOptValue'] = changeValue;
-      }
-      // sets installment labels
-      let installmentTmp = [];
-      saleRow[6]['items'].forEach((x) => {
-        installmentTmp.push({
-          'label': `${x['value']} x ${Utils.getCurrencyFormat(totalSaleValue/Number(x['value']))}`,
-          'value': x['value']
-        });
+    },
+    getSalePayment(inputValue = null, paymentMethodId = null, paymentMethodInstallmentId = null){
+
+      let selectedValue = inputValue ? inputValue : 'R$ 0,00';
+      let selectedPaymentMethodId = paymentMethodId ? paymentMethodId : 1;
+      let selectedPaymentMethodInstallmentId = paymentMethodInstallmentId ? paymentMethodInstallmentId : 1
+      let paymentMethodInstallments = [];
+      
+      this.loadedSaleInfo['payment_methods'].forEach(payment => {
+        if(payment['payment_method_id'] == selectedPaymentMethodId){
+          let singleInstallmentValue = Utils.getNumberFormatFromCurrency(selectedValue) / Number(payment['payment_method_installment_number']);
+          paymentMethodInstallments.push({
+            'label': `${payment['payment_method_installment_number']} x ${Utils.getCurrencyFormat(singleInstallmentValue)}`,
+            'value': payment['payment_method_installment_id']
+          });
+        }
       });
-      saleRow[6]['items'] = installmentTmp;
+
+      return [
+        { 'type': 'text', 'mask': [ 'R$ #,##', 'R$ ##,##', 'R$ ###,##', 'R$ ####,##' ], value: selectedValue },
+        { 'initialOptValue': selectedPaymentMethodId, 'items': this.paymentMethods },
+        { 'initialOptValue': selectedPaymentMethodInstallmentId, 'items': paymentMethodInstallments },
+        { 'showAccept': false, 'showReject': true }
+      ];
+    },
+    addSalePayment(){
+      if(this.tableSalePaymentsData['content'].length == 0){
+        this.tableSalePaymentsData['content'].push(this.getSalePayment());
+      }
+      // the value needs to be set to avoid rendering problems with the value
+      else{
+        
+        let tableSalePaymentsV = this.$refs.tableSalePayments.getV();
+
+        this.tableSalePaymentsData['content'] = [];
+        tableSalePaymentsV.forEach(tableSalePaymentsV => {
+          this.tableSalePaymentsData['content'].push(
+            this.getSalePayment(tableSalePaymentsV[0], tableSalePaymentsV[1], tableSalePaymentsV[2])
+          );
+        });
+        this.tableSalePaymentsData['content'].push(this.getSalePayment());
+      }
+    },
+    cleanSalePaymentsR(row){
+
+      let tableSalePaymentsV = this.$refs.tableSalePayments.getV();
+      
+      this.tableSalePaymentsData['content'] = [];
+      tableSalePaymentsV.forEach((tableSalePaymentsV, rowIndex) => {
+        if(rowIndex != row){
+          this.tableSalePaymentsData['content'].push(this.getSalePayment(tableSalePaymentsV[0], tableSalePaymentsV[1], tableSalePaymentsV[2]));
+        }
+      });
+      
+      // forces component to rerender to resolve not updating issues
+      this.salePaymentsKeyToReRender = this.salePaymentsKeyToReRender + 1;
     },
 
     async createSale(){
       
       let saleRow = this.tableSaleData['content'][0];
       let productsData = this.tableProductsData['content'];
-
       let clientId = this.$refs.cliNameSelect.getV();
       let employeeId = this.$root.userLoggedData['id'];
-      let methodInstallmentId = this.loadedSaleInfo['payment_methods'].find(payment => 
-        payment['payment_method_name'] == this.$refs.tableSale.getV(0, 5) && payment['payment_method_Installment_number'] == this.$refs.tableSale.getV(0, 6)
-      )['payment_method_installment_id'];
       let discountPercentage = this.$refs.tableSale.getV(0, 1) ? (Number(this.$refs.tableSale.getV(0, 1).replace('%',''))/100) : null;
-      let totalValue = Utils.getNumberFormatFromCurrency(this.$refs.tableSale.getV(0, 4));
+      let totalDiscountValue = Utils.getNumberFormatFromCurrency(this.$refs.tableSale.getV(0, 4));
+
+      if(!this.$refs.tableSalePayments || !this.$refs.tableSalePayments.getV() || this.$refs.tableSalePayments.getV().length == 0){
+        this.$root.renderMsg('warn', 'Forma de pagamento inválida!', 'Certifique de estar preenchendo a forma de pagamento');
+        return;
+      }
+
+      let paymentMethodInstallments = [];
+      let totalPaymentMethodValue = 0;
+      
+      this.$refs.tableSalePayments.getV().forEach(payment => {
+        paymentMethodInstallments.push({'id': payment[2], 'value': Utils.getNumberFormatFromCurrency(payment[0])});
+        totalPaymentMethodValue += Utils.getNumberFormatFromCurrency(payment[0]);
+      });
+      if(totalPaymentMethodValue != totalDiscountValue){
+        let diff = totalDiscountValue - totalPaymentMethodValue;
+        this.$root.renderMsg(
+          'warn', 
+          'Forma de pagamento inválida!', 
+          `Certifique de que o valor total com desconto seja exatamente igual a soma total das formas de pagamento. ` +
+          `O total com desconto está com ${diff > 0 ? Utils.getCurrencyFormat(diff) + ' a mais que ' : Utils.getCurrencyFormat(diff*-1) + ' a menos que '}` + 
+          `as formas de pagamento!`);
+        return;
+      }
 
       if(clientId == null || clientId == undefined){
         this.$root.renderMsg('warn', 'Cliente inválido!', 'É preciso selecionar o cliente');
@@ -712,15 +820,11 @@ export default {
         this.$root.renderMsg('warn', 'Funcionário inválido!', 'Este erro não deveria ocorrer, contatar suporte técnico');
         return;
       }
-      if(methodInstallmentId == null || methodInstallmentId == undefined){
-        this.$root.renderMsg('warn', 'Forma de pagamento inválida!', 'Este erro não deveria ocorrer, contatar suporte técnico');
-        return;
-      }
       if(discountPercentage == null || discountPercentage == undefined){
         this.$root.renderMsg('warn', 'Percentual de disconto inválido!', 'Este erro não deveria ocorrer, contatar suporte técnico');
         return;
       }
-      if(totalValue == 0 || productsData.length == 0){
+      if(totalDiscountValue == 0 || productsData.length == 0){
         this.$root.renderMsg('warn', 'Valor da venda inválido!', 'Favor incluir pelo menos um produto e certificar que a venda não vale R$ 0,00');
         return;
       }
@@ -790,11 +894,11 @@ export default {
 
       let vreturn = await this.$root.doRequest(
         Requests.createSale,
-        [clientId, employeeId, methodInstallmentId, discountPercentage, totalValue, saleHasProducts, forceProductAddition]
+        [clientId, employeeId, paymentMethodInstallments, discountPercentage, totalDiscountValue, saleHasProducts, forceProductAddition]
       );
 
       if(vreturn && vreturn['ok']){
-        let self = this;
+        //let self = this;
         this.$root.renderMsg('ok', 'Sucesso!', (forceProductAddition ? 'Produtos adicionados e venda cadastrada.' : 'Venda cadastrada.'), function () { self.$router.go(); });
       }
       else{
@@ -802,6 +906,7 @@ export default {
           'O cliente associado à venda não existe no sistema',
           'O funcionario associado à venda não existe no sistema',
           'O funcionario associado à venda não esta habilitado no sistema',
+          'A forma de pagamento associado à venda está com formato inválido',
           'A forma de pagamento associado à venda não existe no sistema',
           'O desconto na venda não pode ser menor que 0',
           'O desconto na venda não pode ser maior ou igual a 100',
@@ -856,6 +961,10 @@ export default {
   width: 100%;
   padding: 10px;
 }
+.btnplusWrapper{
+  text-align: center;
+  margin: 10px;
+}
 @media (min-width: 1201px) {
   .pageSectionRow{
     margin: 10px 20px;
@@ -908,6 +1017,9 @@ export default {
   .tableProductsWrapper, .tableSaleWrapper{
     width: 98%;
   }
+  .tableSalePaymentsWrapper, .btnplusWrapper{
+    width: 60%;
+  }
   .tableProducts, .tableSale{
     display: inline-block;
   }
@@ -933,7 +1045,7 @@ export default {
     width: 100%;
     display: block;
   }
-  .tableProductsWrapper, .tableSaleWrapper{
+  .tableProductsWrapper, .tableSaleWrapper, .tableSalePaymentsWrapper, .btnplusWrapper{
     width: 100%;
     text-align: center;
   }

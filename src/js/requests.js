@@ -683,7 +683,7 @@ async function createSale(token_jwt, args){
   var jsonBody = {};
   jsonBody['sale_client_id'] = args[0];
   jsonBody['sale_employee_id'] = args[1];
-  jsonBody['sale_payment_method_installment_id'] = args[2];
+  jsonBody['sale_payment_method_installments'] = args[2];
   jsonBody['sale_total_discount_percentage'] = args[3];
   jsonBody['sale_total_value'] = args[4];
   jsonBody['sale_has_products'] = args[5];
