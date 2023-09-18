@@ -898,7 +898,7 @@ export default {
       );
 
       if(vreturn && vreturn['ok']){
-        //let self = this;
+        let self = this;
         this.$root.renderMsg('ok', 'Sucesso!', (forceProductAddition ? 'Produtos adicionados e venda cadastrada.' : 'Venda cadastrada.'), function () { self.$router.go(); });
       }
       else{
