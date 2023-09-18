@@ -141,7 +141,7 @@ export default {
       },
       tableSales: {
         'titles': [ 'Código', 'Nome do Cliente', 'Formas de pagamento', 'Data e Hora  de Geração', 'Valor Final', 'Comissão' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string' ],
+        'colTypes': [ 'string', 'string', 'string-list', 'string', 'string', 'string' ],
         'colWidths': [ '12%', '29%', '23%', '14%', '11%', '11%'],
         'content': []
       },
@@ -221,10 +221,17 @@ export default {
             Utils.getDateTimeString(new Date(Date.parse(sale['sale_creation_date_time']))) :
             '';
 
+          let payment_method_names = sale['payment_method_names'].split(',');
+          let payment_method_numbers = sale['payment_method_installment_numbers'].split(',');
+          let payment_method_values = sale['payment_method_values'].split(',');
+          let payment_methods = payment_method_names.map((payment_method_name, index) => (
+            `${payment_method_name} (${payment_method_numbers[index]} x ${Utils.getCurrencyFormat(Number(payment_method_values[index])/Number(payment_method_numbers[index]))})`
+          ));
+
           this.tableSales['content'].push([
             'VEND-' + sale['sale_id'],
             sale['client_name'],
-            sale['payment_method_names'],
+            payment_methods,
             saleCreationDate,
             Utils.getCurrencyFormat(sale['sale_total_value']),
             Utils.getCurrencyFormat(sale['sale_employee_comission'])
