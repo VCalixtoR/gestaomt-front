@@ -356,7 +356,7 @@ export default {
         this.isLoadingModalEnabled = false;
       }
     },
-    async doRequest(requestF, requestArgs, doAuth = true){
+    async doRequest(requestF, requestArgs, doAuth = true, blobRequest = false){
 
       var vreturn = {};
       var tmpVreturn = {}
@@ -376,7 +376,7 @@ export default {
           }
         }
 
-        vreturn = await requestF(this.jwt, requestArgs);
+        vreturn = await requestF(this.jwt, requestArgs, blobRequest);
 
         // if the token expires in same moment of an failed request, update token and redo request
         if( doAuth && this.isJwtExpired && ( !vreturn || !vreturn['ok'])){
@@ -388,7 +388,7 @@ export default {
             vreturn['status'] = tmpVreturn['status'];
             throw '';
           }
-          vreturn = await requestF(this.jwt, requestArgs);
+          vreturn = await requestF(this.jwt, requestArgs, blobRequest);
         }
 
         return vreturn;

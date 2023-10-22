@@ -133,7 +133,17 @@
           label="Filtrar"
           width="100%"
           padding="3px 0px"
-          @click="this.filter()"
+          @click="this.filter(false)"
+        />
+      </div>
+
+      <div class='filterButton'>
+        <ButtonC colorClass="pink3"
+          :id="'btnApplyFilter'"
+          label="Gerar PDF com Filtros"
+          width="100%"
+          padding="3px 0px"
+          @click="this.filter(true)"
         />
       </div>
 
@@ -331,128 +341,138 @@ export default {
 
   methods:{
 
-    async loadSales(limit, offset,  orderBy, orderByAsc, saleId=null, clientName=null, creationDateTimeStart=null, creationDateTimeEnd=null, saleStatus=null, totalValueStart=null, totalValueEnd=null){
+    async loadSales(limit, offset,  orderBy, orderByAsc, saleId=null, clientName=null, creationDateTimeStart=null, creationDateTimeEnd=null, saleStatus=null, totalValueStart=null, totalValueEnd=null, generatePDF=false){
 
-      this.clientIds = [];
-      this.tableSalesData['content'] = [];
-      this.tableSummaryData['content'] = [];
-      
-      let vreturn = await this.$root.doRequest(
-        Requests.getSales,
-        [ limit, offset, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd ]
-      );
-
-      if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sales']){
-        this.salesIds = [];
-        vreturn['response']['sales'].forEach(sale => {
-          this.salesIds.push(sale['sale_id']);
-
-          let payment_method_names = sale['payment_method_names'].split(',');
-          let payment_method_numbers = sale['payment_method_installment_numbers'].split(',');
-          let payment_method_values = sale['payment_method_values'].split(',');
-          let payment_methods = payment_method_names.map((payment_method_name, index) => (
-            `${payment_method_name} (${payment_method_numbers[index]} x ${Utils.getCurrencyFormat(Number(payment_method_values[index])/Number(payment_method_numbers[index]))})`
-          ));
-
-          this.tableSalesData['content'].push([
-            `VENDA-${sale['sale_id']}`,
-            sale['sale_client_name'],
-            payment_methods,
-            Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
-            Utils.getCurrencyFormat(sale['sale_total_value']),
-            {
-              'disabled': sale['sale_status'] == 'Cancelado',
-              'customFontColor': (sale['sale_status'] == 'Cancelado' ? 'fontred' : null),
-              'initialOptValue': sale['sale_status'],
-              'items': [
-                { label: 'Confirmado', value: 'Confirmado' },
-                { label: 'Cancelado', value: 'Cancelado', color: 'red' }
-              ]
-            },
-            { 'showVisualize': true },
-            { 'showPdf': true }]);
-        });
-
-        if(vreturn['response']['summary']) {
-
-          let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
-          let totalValue1P = vreturn['response']['summary']['total_value']/100;
-
-          this.tableSummaryData['content'].push([
-            'Quantidade',
-            vreturn['response']['summary']['credito_quantity'],
-            vreturn['response']['summary']['debito_quantity'],
-            vreturn['response']['summary']['cheque_quantity'],
-            vreturn['response']['summary']['dinheiro_quantity'],
-            vreturn['response']['summary']['pix_quantity'],
-            vreturn['response']['summary']['total_quantity']
-          ]);
-          this.tableSummaryData['content'].push([
-            'Valor',
-            Utils.getCurrencyFormat(vreturn['response']['summary']['credito_value']),
-            Utils.getCurrencyFormat(vreturn['response']['summary']['debito_value']),
-            Utils.getCurrencyFormat(vreturn['response']['summary']['cheque_value']),
-            Utils.getCurrencyFormat(vreturn['response']['summary']['dinheiro_value']),
-            Utils.getCurrencyFormat(vreturn['response']['summary']['pix_value']),
-            Utils.getCurrencyFormat(vreturn['response']['summary']['total_value'])
-          ]);
-          this.tableSummaryData['content'].push([
-            'Percentual da quantidade',
-            `${Math.round(vreturn['response']['summary']['credito_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['debito_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['cheque_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['dinheiro_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['pix_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
-          ]);
-          this.tableSummaryData['content'].push([
-            'Percentual do valor',
-            `${Math.round(vreturn['response']['summary']['credito_value']/totalValue1P)}%`,
-            `${Math.round(vreturn['response']['summary']['debito_value']/totalValue1P)}%`,
-            `${Math.round(vreturn['response']['summary']['cheque_value']/totalValue1P)}%`,
-            `${Math.round(vreturn['response']['summary']['dinheiro_value']/totalValue1P)}%`,
-            `${Math.round(vreturn['response']['summary']['pix_value']/totalValue1P)}%`,
-            `${Math.round(vreturn['response']['summary']['total_value']/totalValue1P)}%`
-          ]);
-        }
-
-        this.actualPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
-        this.saleId = saleId;
-        this.clientName = clientName;
-        this.creationDateTimeStart = creationDateTimeStart;
-        this.creationDateTimeEnd = creationDateTimeEnd;
-        this.saleStatus = saleStatus;
-        this.totalValueStart = totalValueStart;
-        this.totalValueEnd = totalValueEnd;
-        this.orderBy = orderBy;
-        this.orderByAsc = orderByAsc;
-
-        // checks if it was filtered
-        if(this.saleId ||
-          this.clientName ||
-          this.creationDateTimeStart ||
-          this.creationDateTimeEnd ||
-          this.saleStatus ||
-          this.totalValueStart ||
-          this.totalValueEnd ||
-          this.orderBy != 'sale_creation_date_time' ||
-          this.orderByAsc != 0
-        ){
-          this.filtered = true;
-        }
-        else{
-          this.filtered = false;
-        }
-
-        this.setSessionParams();
+      if(generatePDF){
+        await this.$root.doRequest(
+          Requests.getSales,
+          [ limit, offset, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd, generatePDF ],
+          true, true
+        );
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, ['Data e hora de início inválida', 'Data e hora de fim inválida']);
+        this.clientIds = [];
+        this.tableSalesData['content'] = [];
+        this.tableSummaryData['content'] = [];
+
+        let vreturn = await this.$root.doRequest(
+          Requests.getSales,
+          [ limit, offset, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd, generatePDF ]
+        );
+
+        if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['sales']){
+
+          this.salesIds = [];
+          vreturn['response']['sales'].forEach(sale => {
+            this.salesIds.push(sale['sale_id']);
+
+            let payment_method_names = sale['payment_method_names'].split(',');
+            let payment_method_numbers = sale['payment_method_installment_numbers'].split(',');
+            let payment_method_values = sale['payment_method_values'].split(',');
+            let payment_methods = payment_method_names.map((payment_method_name, index) => (
+              `${payment_method_name} (${payment_method_numbers[index]} x ${Utils.getCurrencyFormat(Number(payment_method_values[index])/Number(payment_method_numbers[index]))})`
+            ));
+
+            this.tableSalesData['content'].push([
+              `VENDA-${sale['sale_id']}`,
+              sale['sale_client_name'],
+              payment_methods,
+              Utils.getDateTimeString(sale['sale_creation_date_time'], '/', ':', false),
+              Utils.getCurrencyFormat(sale['sale_total_value']),
+              {
+                'disabled': sale['sale_status'] == 'Cancelado',
+                'customFontColor': (sale['sale_status'] == 'Cancelado' ? 'fontred' : null),
+                'initialOptValue': sale['sale_status'],
+                'items': [
+                  { label: 'Confirmado', value: 'Confirmado' },
+                  { label: 'Cancelado', value: 'Cancelado', color: 'red' }
+                ]
+              },
+              { 'showVisualize': true },
+              { 'showPdf': true }]);
+          });
+
+          if(vreturn['response']['summary']) {
+
+            let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
+            let totalValue1P = vreturn['response']['summary']['total_value']/100;
+
+            this.tableSummaryData['content'].push([
+              'Quantidade',
+              vreturn['response']['summary']['credito_quantity'],
+              vreturn['response']['summary']['debito_quantity'],
+              vreturn['response']['summary']['cheque_quantity'],
+              vreturn['response']['summary']['dinheiro_quantity'],
+              vreturn['response']['summary']['pix_quantity'],
+              vreturn['response']['summary']['total_quantity']
+            ]);
+            this.tableSummaryData['content'].push([
+              'Valor',
+              Utils.getCurrencyFormat(vreturn['response']['summary']['credito_value']),
+              Utils.getCurrencyFormat(vreturn['response']['summary']['debito_value']),
+              Utils.getCurrencyFormat(vreturn['response']['summary']['cheque_value']),
+              Utils.getCurrencyFormat(vreturn['response']['summary']['dinheiro_value']),
+              Utils.getCurrencyFormat(vreturn['response']['summary']['pix_value']),
+              Utils.getCurrencyFormat(vreturn['response']['summary']['total_value'])
+            ]);
+            this.tableSummaryData['content'].push([
+              'Percentual da quantidade',
+              `${Math.round(vreturn['response']['summary']['credito_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['debito_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['cheque_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['dinheiro_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['pix_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
+            ]);
+            this.tableSummaryData['content'].push([
+              'Percentual do valor',
+              `${Math.round(vreturn['response']['summary']['credito_value']/totalValue1P)}%`,
+              `${Math.round(vreturn['response']['summary']['debito_value']/totalValue1P)}%`,
+              `${Math.round(vreturn['response']['summary']['cheque_value']/totalValue1P)}%`,
+              `${Math.round(vreturn['response']['summary']['dinheiro_value']/totalValue1P)}%`,
+              `${Math.round(vreturn['response']['summary']['pix_value']/totalValue1P)}%`,
+              `${Math.round(vreturn['response']['summary']['total_value']/totalValue1P)}%`
+            ]);
+          }
+
+          this.actualPage = Math.ceil((offset+1)/this.defLimit);
+          this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
+          this.saleId = saleId;
+          this.clientName = clientName;
+          this.creationDateTimeStart = creationDateTimeStart;
+          this.creationDateTimeEnd = creationDateTimeEnd;
+          this.saleStatus = saleStatus;
+          this.totalValueStart = totalValueStart;
+          this.totalValueEnd = totalValueEnd;
+          this.orderBy = orderBy;
+          this.orderByAsc = orderByAsc;
+
+          // checks if it was filtered
+          if(this.saleId ||
+            this.clientName ||
+            this.creationDateTimeStart ||
+            this.creationDateTimeEnd ||
+            this.saleStatus ||
+            this.totalValueStart ||
+            this.totalValueEnd ||
+            this.orderBy != 'sale_creation_date_time' ||
+            this.orderByAsc != 0
+          ){
+            this.filtered = true;
+          }
+          else{
+            this.filtered = false;
+          }
+
+          this.setSessionParams();
+        }
+        else{
+          this.$root.renderRequestErrorMsg(vreturn, ['Data e hora de início inválida', 'Data e hora de fim inválida']);
+        }
       }
     },
 
-    async filter(){
+    async filter(generatePDF=false){
       
       let saleId = this.$refs.saleIdInput.getV();
       let clientName = this.$refs.cliNameSelect.getL();
@@ -467,7 +487,7 @@ export default {
       totalValueStart = totalValueStart ? totalValueStart : null;
       totalValueEnd = totalValueEnd ? totalValueEnd : null;
 
-      await this.loadSales(this.defLimit, 0, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, null, totalValueStart, totalValueEnd);
+      await this.loadSales(this.defLimit, 0, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, null, totalValueStart, totalValueEnd, generatePDF);
     },
 
     async cleanFilter(){

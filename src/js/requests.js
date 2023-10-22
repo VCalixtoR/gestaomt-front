@@ -2,7 +2,7 @@ var shajs = require('sha.js')
 
 const base_url = `${process.env.VUE_APP_SERVICE_URL}`
 
-async function baseRequestFBody(headers, endpoint){
+async function baseRequestFBody(headers, endpoint, blobRequest){
 
   var vreturn = {};
 
@@ -19,22 +19,44 @@ async function baseRequestFBody(headers, endpoint){
 
     let vreturnOk = vreturn['response'].ok;
 
-    if(vreturn['response']){
-      vreturn['response'] = await vreturn['response'].text();
+    // Blob return requests are used to download files
+    if(blobRequest){
+
+      // Gets blob name from Content-Disposition header
+      let contentDispositionHeader = vreturn['response'].headers.get('Content-Disposition');
+      let blobName = contentDispositionHeader.split('filename=')[1];
+
+      // Creates the blob object based on fetch return
+      let blob = await vreturn['response'].blob();
+      let blobURL = window.URL.createObjectURL(blob);
+
+      // Creates a object <a> to click, download and remove it
+      var a = document.createElement('a');
+      a.href = blobURL;
+      a.download = blobName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     }
-    if(vreturn['response']){
-      vreturn['response'] = JSON.parse(vreturn['response']);
-    }
-    
-    if(vreturnOk){
-      vreturn['ok'] = true;
+    // normal request flow
+    else{
+      if(vreturn['response']){
+        vreturn['response'] = await vreturn['response'].text();
+      }
+      if(vreturn['response']){
+        vreturn['response'] = JSON.parse(vreturn['response']);
+      }
+      
+      if(vreturnOk){
+        vreturn['ok'] = true;
+        return vreturn;
+      }
+  
+      vreturn['ok'] = false;
+      vreturn['location'] = `Return in ${endpoint}`;
+  
       return vreturn;
     }
-
-    vreturn['ok'] = false;
-    vreturn['location'] = `Return in ${endpoint}`;
-
-    return vreturn;
   }
   catch(error){
     vreturn['ok'] = false;
@@ -102,7 +124,7 @@ async function doTokenAuthentication(old_jwt){
   return vreturn;
 }
 
-async function deleteAuthToken(token_jwt, args){
+async function deleteAuthToken(token_jwt, args, blobRequest){
 
   var myHeaders = {
     method: 'DELETE',
@@ -116,7 +138,7 @@ async function deleteAuthToken(token_jwt, args){
   return vreturn;
 }
 
-async function createUser(token_jwt, args){
+async function createUser(token_jwt, args, blobRequest){
 
   let user_name = args[0];
   let user_type = args[1];
@@ -149,7 +171,7 @@ async function createUser(token_jwt, args){
   return vreturn;
 }
 
-async function getUser(token_jwt, args){
+async function getUser(token_jwt, args, blobRequest){
 
   let user_id = args[0];
 
@@ -167,7 +189,7 @@ async function getUser(token_jwt, args){
   return vreturn;
 }
 
-async function getUsers(token_jwt, args){
+async function getUsers(token_jwt, args, blobRequest){
 
   var myHeaders = {
     method: 'GET',
@@ -181,7 +203,7 @@ async function getUsers(token_jwt, args){
   return vreturn;
 }
 
-async function getPendingUsers(token_jwt, args){
+async function getPendingUsers(token_jwt, args, blobRequest){
 
   var myHeaders = {
     method: 'GET',
@@ -195,7 +217,7 @@ async function getPendingUsers(token_jwt, args){
   return vreturn;
 }
 
-async function allowUser(token_jwt, args){
+async function allowUser(token_jwt, args, blobRequest){
 
   let user_id = args[0];
 
@@ -215,7 +237,7 @@ async function allowUser(token_jwt, args){
   return vreturn;
 }
 
-async function rejectUser(token_jwt, args){
+async function rejectUser(token_jwt, args, blobRequest){
 
   let user_id = args[0];
 
@@ -235,7 +257,7 @@ async function rejectUser(token_jwt, args){
   return vreturn;
 }
 
-async function getEmployees(token_jwt, args){
+async function getEmployees(token_jwt, args, blobRequest){
 
   var myHeaders = {
     method: 'GET',
@@ -249,7 +271,7 @@ async function getEmployees(token_jwt, args){
   return vreturn;
 }
 
-async function updateEmployee(token_jwt, args){
+async function updateEmployee(token_jwt, args, blobRequest){
 
   let employee_id = args[0];
   let employee_active = args[1];
@@ -273,7 +295,7 @@ async function updateEmployee(token_jwt, args){
   return vreturn;
 }
 
-async function getEmployeeSales(token_jwt, args){
+async function getEmployeeSales(token_jwt, args, blobRequest){
 
   let employee_id = args[0];
   let limit = args[1];
@@ -295,7 +317,7 @@ async function getEmployeeSales(token_jwt, args){
   return vreturn;
 }
 
-async function getEmployeeSalesSummary(token_jwt, args){
+async function getEmployeeSalesSummary(token_jwt, args, blobRequest){
 
   let employee_id = args[0];
   let start_date = (args[1] != null ? args[1] : '');
@@ -315,7 +337,7 @@ async function getEmployeeSalesSummary(token_jwt, args){
   return vreturn;
 }
 
-async function getClient(token_jwt, args){
+async function getClient(token_jwt, args, blobRequest){
 
   let client_id = args[0];
 
@@ -333,7 +355,7 @@ async function getClient(token_jwt, args){
   return vreturn;
 }
 
-async function getClients(token_jwt, args){
+async function getClients(token_jwt, args, blobRequest){
 
   let myHeaders = {
     method: 'GET',
@@ -363,7 +385,7 @@ async function getClients(token_jwt, args){
   return vreturn;
 }
 
-async function createClient(token_jwt, args){
+async function createClient(token_jwt, args, blobRequest){
 
   var jsonBody = {};
   jsonBody['client_name'] = args[0];
@@ -410,7 +432,7 @@ async function createClient(token_jwt, args){
   return vreturn;
 }
 
-async function updateClient(token_jwt, args){
+async function updateClient(token_jwt, args, blobRequest){
 
   var jsonBody = {};
   jsonBody['client_id'] = args[0];
@@ -458,7 +480,7 @@ async function updateClient(token_jwt, args){
   return vreturn;
 }
 
-async function createProduct(token_jwt, args){
+async function createProduct(token_jwt, args, blobRequest){
   
   var jsonBody = {};
   jsonBody['product_code'] = args[0];
@@ -486,7 +508,7 @@ async function createProduct(token_jwt, args){
 
 }
 
-async function getProduct(token_jwt, args){
+async function getProduct(token_jwt, args, blobRequest){
   
   let myHeaders = {
     method: 'GET',
@@ -504,7 +526,7 @@ async function getProduct(token_jwt, args){
   return vreturn;
 }
 
-async function updateProduct(token_jwt, args){
+async function updateProduct(token_jwt, args, blobRequest){
 
   var jsonBody = {};
   jsonBody['product_id'] = args[0];
@@ -532,7 +554,7 @@ async function updateProduct(token_jwt, args){
   return vreturn;
 }
 
-async function getProducts(token_jwt, args){
+async function getProducts(token_jwt, args, blobRequest){
 
   let myHeaders = {
     method: 'GET',
@@ -564,7 +586,7 @@ async function getProducts(token_jwt, args){
   return vreturn;
 }
 
-async function getProductInfo(token_jwt, _){
+async function getProductInfo(token_jwt, _, blobRequest){
 
   var myHeaders = {
     method: 'GET',
@@ -578,7 +600,7 @@ async function getProductInfo(token_jwt, _){
   return vreturn;
 }
 
-async function createConditional(token_jwt, args){
+async function createConditional(token_jwt, args, blobRequest){
   
   var jsonBody = {};
   jsonBody['conditional_client_id'] = args[0];
@@ -600,7 +622,7 @@ async function createConditional(token_jwt, args){
   return vreturn;
 }
 
-async function getConditional(token_jwt, args){
+async function getConditional(token_jwt, args, blobRequest){
 
   let myHeaders = {
     method: 'GET',
@@ -618,7 +640,7 @@ async function getConditional(token_jwt, args){
   return vreturn;
 }
 
-async function getConditionals(token_jwt, args){
+async function getConditionals(token_jwt, args, blobRequest){
 
   let myHeaders = {
     method: 'GET',
@@ -644,7 +666,7 @@ async function getConditionals(token_jwt, args){
   return vreturn;
 }
 
-async function getConditionalInfo(token_jwt, _){
+async function getConditionalInfo(token_jwt, _, blobRequest){
 
   var myHeaders = {
     method: 'GET',
@@ -658,7 +680,7 @@ async function getConditionalInfo(token_jwt, _){
   return vreturn;
 }
 
-async function updateConditionalStatus(token_jwt, args){
+async function updateConditionalStatus(token_jwt, args, blobRequest){
 
   var jsonBody = {};
   jsonBody['conditional_id'] = args[0];
@@ -678,7 +700,7 @@ async function updateConditionalStatus(token_jwt, args){
   return vreturn;
 }
 
-async function createSale(token_jwt, args){
+async function createSale(token_jwt, args, blobRequest){
   
   var jsonBody = {};
   jsonBody['sale_client_id'] = args[0];
@@ -703,7 +725,7 @@ async function createSale(token_jwt, args){
   return vreturn;
 }
 
-async function getSale(token_jwt, args){
+async function getSale(token_jwt, args, blobRequest){
 
   let myHeaders = {
     method: 'GET',
@@ -721,7 +743,7 @@ async function getSale(token_jwt, args){
   return vreturn;
 }
 
-async function getSales(token_jwt, args){
+async function getSales(token_jwt, args, blobRequest){
 
   let myHeaders = {
     method: 'GET',
@@ -742,14 +764,15 @@ async function getSales(token_jwt, args){
     'sale_creation_date_time_end': args[7],
     'sale_status': args[8],
     'sale_total_value_start': args[9],
-    'sale_total_value_end' : args[10]
+    'sale_total_value_end' : args[10],
+    'generate_pdf': args[11]
   });
-
-  let vreturn = await baseRequestFBody(myHeaders, `sales${querystring}`);
+  
+  let vreturn = await baseRequestFBody(myHeaders, `sales${querystring}`, blobRequest);
   return vreturn;
 }
 
-async function getSaleInfo(token_jwt, _){
+async function getSaleInfo(token_jwt, _, blobRequest){
 
   var myHeaders = {
     method: 'GET',
@@ -763,7 +786,7 @@ async function getSaleInfo(token_jwt, _){
   return vreturn;
 }
 
-async function cancelSale(token_jwt, args){
+async function cancelSale(token_jwt, args, blobRequest){
 
   var jsonBody = {};
   jsonBody['sale_id'] = args[0];
@@ -782,7 +805,7 @@ async function cancelSale(token_jwt, args){
   return vreturn;
 }
 
-async function getEvents(token_jwt, args){
+async function getEvents(token_jwt, args, blobRequest){
 
   let limit = args[0];
   let offset = args[1];
