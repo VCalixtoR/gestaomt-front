@@ -245,7 +245,6 @@ export default {
       orderBySelectI: [
         { label: 'Código' , value: 'sale_id' },
         { label: 'Data e Hora de Geração' , value: 'sale_creation_date_time' },
-        { label: 'Forma de Pagamento' , value: 'payment_method_name' },
         { label: 'Nome do Cliente' , value: 'sale_client_name' },
         { label: 'Status' , value: 'sale_status' },
         { label: 'Valor Final' , value: 'sale_total_value' },
@@ -346,7 +345,7 @@ export default {
       if(generatePDF){
         await this.$root.doRequest(
           Requests.getSales,
-          [ limit, offset, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd, generatePDF ],
+          [ null, null, orderBy, orderByAsc, saleId, clientName, creationDateTimeStart, creationDateTimeEnd, saleStatus, totalValueStart, totalValueEnd, generatePDF ],
           true, true
         );
       }
