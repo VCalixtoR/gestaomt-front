@@ -125,6 +125,16 @@
         />
       </div>
 
+      <div class='filterButton'>
+        <ButtonC colorClass="pink3"
+          :id="'btnGeneratePDF'"
+          label="Gerar PDF com Filtros"
+          width="100%"
+          padding="3px 0px"
+          @click="this.filter(true)"
+        />
+      </div>
+
       <div class='clearFilterButton'>
         <ButtonC colorClass="black1"
           :id="'btnCleanFilter'"
@@ -316,96 +326,106 @@ export default {
 
   methods:{
 
-    async loadConditionals(limit, offset,  orderBy, orderByAsc, conditionalId=null, clientName=null, conditionalStatus=null, creationDateTimeStart=null, creationDateTimeEnd=null){
+    async loadConditionals(limit, offset,  orderBy, orderByAsc, conditionalId=null, clientName=null, conditionalStatus=null, creationDateTimeStart=null, creationDateTimeEnd=null, generatePDF=false){
 
-      this.clientIds = [];
-      this.tableConditionalsData['content'] = [];
-      this.tableSummaryData['content'] = [];
-      
-      let vreturn = await this.$root.doRequest(
-        Requests.getConditionals, 
-        [ limit, offset, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd ]
-      );
-
-      if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['conditionals']){
-        this.conditionalIds = [];
-        this.conditionalStatusTmp = [];
-
-        vreturn['response']['conditionals'].forEach(conditional => {
-          this.conditionalIds.push(conditional['conditional_id']);
-          this.conditionalStatusTmp.push(conditional['conditional_status']);
-          this.tableConditionalsData['content'].push([
-            `COND-${conditional['conditional_id']}`,
-            conditional['conditional_client_name'],
-            Utils.getDateTimeString(conditional['conditional_creation_date_time'], '/', ':', false),
-            {
-              'disabled': conditional['conditional_status'] == 'Cancelado' || conditional['conditional_status'] == 'Devolvido',
-              'customFontColor': (conditional['conditional_status'] == 'Cancelado' ? 'fontred' : conditional['conditional_status'] == 'Devolvido' ? 'fontpink3' : null),
-              'initialOptValue': conditional['conditional_status'],
-              'items': [
-                { label: 'Pendente', value: 'Pendente' }, 
-                { label: 'Devolvido', value: 'Devolvido' }, 
-                { label: 'Cancelado', value: 'Cancelado', color: 'red' }
-              ]
-            },
-            { 'showVisualize': true },
-            { 'showPdf': true },
-          ]);
-        });
-
-        if(vreturn['response']['summary']){
-          
-          let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
-
-          this.tableSummaryData['content'].push([
-            'Quantidade',
-            vreturn['response']['summary']['canceled_quantity'],
-            vreturn['response']['summary']['returned_quantity'],
-            vreturn['response']['summary']['pending_quantity'],
-            vreturn['response']['summary']['total_quantity']
-          ]);
-          this.tableSummaryData['content'].push([
-            'Percentual da quantidade',
-            `${Math.round(vreturn['response']['summary']['canceled_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['returned_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['pending_quantity']/totalQuantity1P)}%`,
-            `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
-          ]);
-        }
-
-        this.actualPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
-        this.conditionalId = conditionalId;
-        this.clientName = clientName;
-        this.conditionalStatus = conditionalStatus;
-        this.creationDateTimeStart = creationDateTimeStart;
-        this.creationDateTimeEnd = creationDateTimeEnd;
-        this.orderBy = orderBy;
-        this.orderByAsc = orderByAsc;
-
-        // checks if it was filtered
-        if(this.conditionalId || 
-          this.clientName ||
-          this.conditionalStatus ||
-          this.creationDateTimeStart ||
-          this.creationDateTimeEnd ||
-          this.orderBy != 'conditional_creation_date_time' ||
-          this.orderByAsc != 0
-        ){
-          this.filtered = true;
-        }
-        else{
-          this.filtered = false;
-        }
-
-        this.setSessionParams();
+      if(generatePDF){
+        await this.$root.doRequest(
+          Requests.getConditionals,
+          [ null, null, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd, generatePDF ],
+          true, true
+        );
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, ['Data e hora de início inválida', 'Data e hora de fim inválida']);
+
+        this.clientIds = [];
+        this.tableConditionalsData['content'] = [];
+        this.tableSummaryData['content'] = [];
+        
+        let vreturn = await this.$root.doRequest(
+          Requests.getConditionals, 
+          [ limit, offset, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd, generatePDF ]
+        );
+
+        if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['conditionals']){
+          this.conditionalIds = [];
+          this.conditionalStatusTmp = [];
+
+          vreturn['response']['conditionals'].forEach(conditional => {
+            this.conditionalIds.push(conditional['conditional_id']);
+            this.conditionalStatusTmp.push(conditional['conditional_status']);
+            this.tableConditionalsData['content'].push([
+              `COND-${conditional['conditional_id']}`,
+              conditional['conditional_client_name'],
+              Utils.getDateTimeString(conditional['conditional_creation_date_time'], '/', ':', false),
+              {
+                'disabled': conditional['conditional_status'] == 'Cancelado' || conditional['conditional_status'] == 'Devolvido',
+                'customFontColor': (conditional['conditional_status'] == 'Cancelado' ? 'fontred' : conditional['conditional_status'] == 'Devolvido' ? 'fontpink3' : null),
+                'initialOptValue': conditional['conditional_status'],
+                'items': [
+                  { label: 'Pendente', value: 'Pendente' }, 
+                  { label: 'Devolvido', value: 'Devolvido' }, 
+                  { label: 'Cancelado', value: 'Cancelado', color: 'red' }
+                ]
+              },
+              { 'showVisualize': true },
+              { 'showPdf': true },
+            ]);
+          });
+
+          if(vreturn['response']['summary']){
+            
+            let totalQuantity1P = vreturn['response']['summary']['total_quantity']/100;
+
+            this.tableSummaryData['content'].push([
+              'Quantidade',
+              vreturn['response']['summary']['canceled_quantity'],
+              vreturn['response']['summary']['returned_quantity'],
+              vreturn['response']['summary']['pending_quantity'],
+              vreturn['response']['summary']['total_quantity']
+            ]);
+            this.tableSummaryData['content'].push([
+              'Percentual da quantidade',
+              `${Math.round(vreturn['response']['summary']['canceled_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['returned_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['pending_quantity']/totalQuantity1P)}%`,
+              `${Math.round(vreturn['response']['summary']['total_quantity']/totalQuantity1P)}%`
+            ]);
+          }
+
+          this.actualPage = Math.ceil((offset+1)/this.defLimit);
+          this.maxPages = Math.max(Math.ceil(vreturn['response']['total_quantity']/this.defLimit), 1);
+          this.conditionalId = conditionalId;
+          this.clientName = clientName;
+          this.conditionalStatus = conditionalStatus;
+          this.creationDateTimeStart = creationDateTimeStart;
+          this.creationDateTimeEnd = creationDateTimeEnd;
+          this.orderBy = orderBy;
+          this.orderByAsc = orderByAsc;
+
+          // checks if it was filtered
+          if(this.conditionalId || 
+            this.clientName ||
+            this.conditionalStatus ||
+            this.creationDateTimeStart ||
+            this.creationDateTimeEnd ||
+            this.orderBy != 'conditional_creation_date_time' ||
+            this.orderByAsc != 0
+          ){
+            this.filtered = true;
+          }
+          else{
+            this.filtered = false;
+          }
+
+          this.setSessionParams();
+        }
+        else{
+          this.$root.renderRequestErrorMsg(vreturn, ['Data e hora de início inválida', 'Data e hora de fim inválida']);
+        }
       }
     },
 
-    async filter(){
+    async filter(generatePDF=false){
       
       let conditionalId = this.$refs.conditionalIdInput.getV();
       let clientName = this.$refs.cliNameSelect.getL();
@@ -417,7 +437,7 @@ export default {
       
       conditionalId = conditionalId.replace('COND-', '');
 
-      await this.loadConditionals(this.defLimit, 0, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd);
+      await this.loadConditionals(this.defLimit, 0, orderBy, orderByAsc, conditionalId, clientName, conditionalStatus, creationDateTimeStart, creationDateTimeEnd, generatePDF);
     },
 
     async cleanFilter(){

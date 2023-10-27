@@ -659,10 +659,11 @@ async function getConditionals(token_jwt, args, blobRequest){
     'conditional_client_name': args[5],
     'conditional_status': args[6],
     'conditional_creation_date_time_start': args[7],
-    'conditional_creation_date_time_end': args[8]
+    'conditional_creation_date_time_end': args[8],
+    'generate_pdf': args[9]
   });
 
-  let vreturn = await baseRequestFBody(myHeaders, `conditionals${querystring}`);
+  let vreturn = await baseRequestFBody(myHeaders, `conditionals${querystring}`, blobRequest);
   return vreturn;
 }
 

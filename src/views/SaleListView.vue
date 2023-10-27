@@ -139,7 +139,7 @@
 
       <div class='filterButton'>
         <ButtonC colorClass="pink3"
-          :id="'btnApplyFilter'"
+          :id="'btnGeneratePDF'"
           label="Gerar PDF com Filtros"
           width="100%"
           padding="3px 0px"
