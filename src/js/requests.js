@@ -579,10 +579,11 @@ async function getProducts(token_jwt, args, blobRequest){
     'product_quantity_initial': args[11],
     'product_quantity_final': args[12],
     'product_price_initial': args[13],
-    'product_price_final': args[14]
+    'product_price_final': args[14],
+    'generate_pdf': args[15]
   });
 
-  let vreturn = await baseRequestFBody(myHeaders, `products${querystring}`);
+  let vreturn = await baseRequestFBody(myHeaders, `products${querystring}`, blobRequest);
   return vreturn;
 }
 

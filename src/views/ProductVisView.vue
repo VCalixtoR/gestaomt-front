@@ -226,6 +226,16 @@
         />
       </div>
 
+      <div class='filterButton'>
+        <ButtonC colorClass="pink3"
+          :id="'btnGeneratePDF'"
+          label="Gerar PDF com Filtros"
+          width="100%"
+          padding="3px 0px"
+          @click="this.filter(true)"
+        />
+      </div>
+
       <div class='clearFilterButton'>
         <ButtonC colorClass="black1"
           :id="'btnCleanFilter'"
@@ -422,111 +432,120 @@ export default {
   methods:{
 
     async loadProducts(limit, offset, orderBy, orderByAsc, code=null, name=null, colorId=null, otherId=null, sizeId=null, 
-      collectionId=null, typeId=null, quantityStart=null, quantityEnd=null, priceStart=null, priceEnd=null){
-
-      this.productCodes = [];
-      this.tableProducts['content'] = [];
-
-      let vreturn = await this.$root.doRequest(
-        Requests.getProducts,
-        [ limit, offset, orderBy, orderByAsc, code, name, colorId, otherId, sizeId, collectionId, typeId, quantityStart, quantityEnd, priceStart, priceEnd ]
-      );
-
-      if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['products']){
-
-        vreturn['response']['products'].forEach(product => {
-
-          this.productCodes.push(product['product_code']);
-
-          // splits before to avoid splitting in map several times
-          // size
-          let productSizeNames = product['product_size_names'].split(',');
-          // colors
-          let productColorNames = product['product_color_names'] && product['product_color_names'].length > 0 ? 
-            product['product_color_names'].split(',') : null;
-          // others
-            let productOtherNames = product['product_other_names'] && product['product_other_names'].length > 0 ? 
-            product['product_other_names'].split(',') : null;
-          // quantitys
-          let productQuantityes = product['customized_product_quantityes'].split(',');
-          // prices
-          let productPrices = product['customized_product_prices'].split(',').map(x => Utils.getCurrencyFormat(x));
-
-          let productsResume = [];
-
-          productSizeNames.forEach((size, i) => {
-            if(productQuantityes > 0){
-              productsResume.push(
-                size + ' ' + 
-                (productColorNames && this.showColorsInProductName ? productColorNames[i] : '') + ' ' + 
-                (productOtherNames && this.showOthersInProductName ? productOtherNames[i] : '') + ' : ' + 
-                productQuantityes[i] + ' : ' +
-                productPrices[i]
-              );
-            }
-          })
-          
-          // inserts to table
-          this.tableProducts['content'].push([
-            product['product_code'],
-            product['product_name'],
-            product['product_type_names'] && product['product_type_names'].length > 0 ? product['product_type_names'].split(',') : ['---'],
-
-            //product['product_collection_names'] && product['product_collection_names'].length > 0 ? product['product_collection_names'].split(',') : ['---'],
-            
-            productsResume && productsResume.length > 0 ? productsResume : ['---'],
-
-            { 'showEdit': true }]);
-        });
-
-        // actual and page for paginator
-        this.actualProductsPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxProductsPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
-
-        // stores filter values
-        this.code = code;
-        this.name = name;
-        this.colorId = colorId;
-        this.otherId = otherId;
-        this.sizeId = sizeId;
-        this.collectionId = collectionId;
-        this.typeId = typeId;
-        this.quantityStart = quantityStart;
-        this.quantityEnd = quantityEnd;
-        this.priceStart = priceStart;
-        this.priceEnd = priceEnd;
-        this.orderBy = orderBy;
-        this.orderByAsc = orderByAsc;
-
-        // checks if it was filtered
-        if(this.code ||
-          this.name ||
-          this.colorId ||
-          this.otherId ||
-          this.sizeId ||
-          this.collectionId ||
-          this.typeId ||
-          this.quantityStart ||
-          this.quantityEnd ||
-          this.priceStart ||
-          this.priceEnd ||
-          this.orderBy != 'product_code' ||
-          this.orderByAsc != 1
-        ){
-          this.filtered = true;
-        }
-        else{
-          this.filtered = false;
-        }
-
-        this.setSessionParams();
+      collectionId=null, typeId=null, quantityStart=null, quantityEnd=null, priceStart=null, priceEnd=null, generatePDF=false){
+      
+      if(generatePDF){
+        await this.$root.doRequest(
+          Requests.getProducts,
+          [ null, null, orderBy, orderByAsc, code, name, colorId, otherId, sizeId, collectionId, typeId, quantityStart, quantityEnd, priceStart, priceEnd, generatePDF ],
+          true, true
+        );
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.productCodes = [];
+        this.tableProducts['content'] = [];
+
+        let vreturn = await this.$root.doRequest(
+          Requests.getProducts,
+          [ limit, offset, orderBy, orderByAsc, code, name, colorId, otherId, sizeId, collectionId, typeId, quantityStart, quantityEnd, priceStart, priceEnd, generatePDF ]
+        );
+
+        if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['products']){
+
+          vreturn['response']['products'].forEach(product => {
+
+            this.productCodes.push(product['product_code']);
+
+            // splits before to avoid splitting in map several times
+            // size
+            let productSizeNames = product['product_size_names'].split(',');
+            // colors
+            let productColorNames = product['product_color_names'] && product['product_color_names'].length > 0 ? 
+              product['product_color_names'].split(',') : null;
+            // others
+              let productOtherNames = product['product_other_names'] && product['product_other_names'].length > 0 ? 
+              product['product_other_names'].split(',') : null;
+            // quantitys
+            let productQuantityes = product['customized_product_quantityes'].split(',');
+            // prices
+            let productPrices = product['customized_product_prices'].split(',').map(x => Utils.getCurrencyFormat(x));
+
+            let productsResume = [];
+
+            productSizeNames.forEach((size, i) => {
+              if(productQuantityes > 0){
+                productsResume.push(
+                  size + ' ' + 
+                  (productColorNames && this.showColorsInProductName ? productColorNames[i] : '') + ' ' + 
+                  (productOtherNames && this.showOthersInProductName ? productOtherNames[i] : '') + ' : ' + 
+                  productQuantityes[i] + ' : ' +
+                  productPrices[i]
+                );
+              }
+            })
+            
+            // inserts to table
+            this.tableProducts['content'].push([
+              product['product_code'],
+              product['product_name'],
+              product['product_type_names'] && product['product_type_names'].length > 0 ? product['product_type_names'].split(',') : ['---'],
+
+              //product['product_collection_names'] && product['product_collection_names'].length > 0 ? product['product_collection_names'].split(',') : ['---'],
+              
+              productsResume && productsResume.length > 0 ? productsResume : ['---'],
+
+              { 'showEdit': true }]);
+          });
+
+          // actual and page for paginator
+          this.actualProductsPage = Math.ceil((offset+1)/this.defLimit);
+          this.maxProductsPages = Math.max(Math.ceil(vreturn['response']['count']/this.defLimit), 1);
+
+          // stores filter values
+          this.code = code;
+          this.name = name;
+          this.colorId = colorId;
+          this.otherId = otherId;
+          this.sizeId = sizeId;
+          this.collectionId = collectionId;
+          this.typeId = typeId;
+          this.quantityStart = quantityStart;
+          this.quantityEnd = quantityEnd;
+          this.priceStart = priceStart;
+          this.priceEnd = priceEnd;
+          this.orderBy = orderBy;
+          this.orderByAsc = orderByAsc;
+
+          // checks if it was filtered
+          if(this.code ||
+            this.name ||
+            this.colorId ||
+            this.otherId ||
+            this.sizeId ||
+            this.collectionId ||
+            this.typeId ||
+            this.quantityStart ||
+            this.quantityEnd ||
+            this.priceStart ||
+            this.priceEnd ||
+            this.orderBy != 'product_code' ||
+            this.orderByAsc != 1
+          ){
+            this.filtered = true;
+          }
+          else{
+            this.filtered = false;
+          }
+
+          this.setSessionParams();
+        }
+        else{
+          this.$root.renderRequestErrorMsg(vreturn, []);
+        }
       }
     },
 
-    async filter(){
+    async filter(generatePDF=false){
       
       let code = this.$refs.codeInput.getV();
       let name = this.$refs.nameInput.getV();
@@ -543,7 +562,7 @@ export default {
       let orderByAsc = this.$refs.orderByAscSelect.getV();
 
       await this.loadProducts(this.defLimit, 0, orderBy, orderByAsc, code, name, colorId, otherId, sizeId, collectionId, typeId, 
-        startQuantity, endQuantity, startPrice, endPrice);
+        startQuantity, endQuantity, startPrice, endPrice, generatePDF);
     },
 
     async cleanFilter(){
