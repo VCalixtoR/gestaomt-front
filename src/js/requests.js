@@ -378,10 +378,11 @@ async function getClients(token_jwt, args, blobRequest){
     'children_birth_month_day_start': args[9],
     'children_birth_month_day_end': args[10],
     'last_sale_date_start': args[11],
-    'last_sale_date_end': args[12]
+    'last_sale_date_end': args[12],
+    'generate_pdf': args[13]
   });
 
-  let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`);
+  let vreturn = await baseRequestFBody(myHeaders, `clients${querystring}`, blobRequest);
   return vreturn;
 }
 

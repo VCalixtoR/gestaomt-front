@@ -472,13 +472,19 @@ export default {
       return [
         { 'type': 'text', 'maxlength': '50', 'onlyLetters': true, 'placeholder': '---', 'value': nameValue },
         { 'type': 'date', 'value': dateValue },
-        { 'initialOptValue': sizeValue, 'items': [ 
-          { label: '32', value: 1 },
-          { label: '34', value: 2 },
-          { label: '36', value: 3 },
-          { label: '38', value: 4 },
-          { label: '40', value: 5 },
-          { label: '42', value: 6 }
+        { 'initialOptValue': sizeValue, 'items': [
+          { label: '30', value: 1 }, 
+          { label: '32', value: 2 },
+          { label: '34', value: 3 },
+          { label: '36', value: 4 },
+          { label: '38', value: 5 },
+          { label: '40', value: 6 },
+          { label: '42', value: 7 },
+          { label: '44', value: 8 },
+          { label: 'PP', value: 9 },
+          { label: 'P', value: 10 },
+          { label: 'M', value: 11 },
+          { label: 'G', value: 12 },
         ]},
         { 'showAccept': false, 'showReject': true } ]
     },

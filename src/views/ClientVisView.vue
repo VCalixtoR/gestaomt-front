@@ -184,6 +184,16 @@
         />
       </div>
 
+      <div class='filterButton'>
+        <ButtonC colorClass="pink3"
+          :id="'btnGeneratePDF'"
+          label="Gerar PDF com Filtros"
+          width="100%"
+          padding="3px 0px"
+          @click="this.filter(true)"
+        />
+      </div>
+
       <div class='clearFilterButton'>
         <ButtonC colorClass="black1"
           :id="'btnCleanFilter'"
@@ -371,69 +381,79 @@ export default {
 
   methods:{
 
-    async loadClients(limit, offset, orderBy, orderByAsc, clientName=null, childrenName=null, clientClassification=null, clientWhatsapp=null, startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null){
-
-      this.clientIds = [];
-      this.tableClients['content'] = [];
-
-      let vreturn = await this.$root.doRequest(
-        Requests.getClients,
-        [ false, limit, offset, orderBy, orderByAsc, clientName, childrenName, clientClassification, clientWhatsapp, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate ]
-      );
-
-      if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['clients']){
-
-        vreturn['response']['clients'].forEach(client => {
-          this.clientIds.push(client['client_id']);
-          this.tableClients['content'].push([
-            client['client_name'],
-            client['last_sale_date'] ? Utils.getDateTimeString(client['last_sale_date'], '/', ':', false) : '---',
-            Utils.getCurrencyFormat(client['last_sale_total_value']),
-            client['children'] && client['children'].length > 0 ? client['children'].map(x => x['children_name']) : ['---'],
-            client['contacts'].find(x => x['contact_type'] == 'W') ? client['contacts'].find(x => x['contact_type'] == 'W')['contact_value'] : '---',
-            client['client_classification'],
-            { 'showEdit': true }]);
-        });
-
-        this.actualClientsPage = Math.ceil((offset+1)/this.defLimit);
-        this.maxClientsPages = Math.max(Math.ceil(vreturn['response']['count_clients']/this.defLimit), 1);
-        this.clientName = clientName;
-        this.childName = childrenName;
-        this.clientClassification = clientClassification;
-        this.clientWhatsapp = clientWhatsapp;
-        this.birthStartDayMonth = startChildrenBirthDayMonth;
-        this.birthEndDayMonth = endChildrenBirthDayMonth;
-        this.lastBuyStartT = startLastSaleDate;
-        this.lastBuyEndT = endLastSaleDate;
-        this.orderBy = orderBy;
-        this.orderByAsc = orderByAsc;
-
-        // checks if it was filtered
-        if(this.clientName || 
-          this.childName || 
-          this.clientClassification || 
-          this.clientWhatsapp || 
-          this.birthStartDayMonth || 
-          this.birthEndDayMonth || 
-          this.lastBuyStartT || 
-          this.lastBuyEndT ||
-          this.orderBy != 'person_name' ||
-          this.orderByAsc != 1
-        ){
-          this.filtered = true;
-        }
-        else{
-          this.filtered = false;
-        }
-
-        this.setSessionParams();
+    async loadClients(limit, offset, orderBy, orderByAsc, clientName=null, childrenName=null, clientClassification=null, clientWhatsapp=null, 
+      startChildrenBirthDayMonth=null, endChildrenBirthDayMonth=null, startLastSaleDate=null, endLastSaleDate=null, generatePDF=false){
+      
+      if(generatePDF){
+        await this.$root.doRequest(
+          Requests.getClients,
+          [ false, null, null, orderBy, orderByAsc, clientName, childrenName, clientClassification, clientWhatsapp, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate, generatePDF ],
+          true, true
+        );
       }
       else{
-        this.$root.renderRequestErrorMsg(vreturn, []);
+        this.clientIds = [];
+        this.tableClients['content'] = [];
+
+        let vreturn = await this.$root.doRequest(
+          Requests.getClients,
+          [ false, limit, offset, orderBy, orderByAsc, clientName, childrenName, clientClassification, clientWhatsapp, startChildrenBirthDayMonth, endChildrenBirthDayMonth, startLastSaleDate, endLastSaleDate, generatePDF ]
+        );
+
+        if(vreturn && vreturn['ok'] && vreturn['response'] && vreturn['response']['clients']){
+
+          vreturn['response']['clients'].forEach(client => {
+            this.clientIds.push(client['client_id']);
+            this.tableClients['content'].push([
+              client['client_name'],
+              client['last_sale_date'] ? Utils.getDateTimeString(client['last_sale_date'], '/', ':', false) : '---',
+              Utils.getCurrencyFormat(client['last_sale_total_value']),
+              client['children'] && client['children'].length > 0 ? client['children'].map(x => x['children_name']) : ['---'],
+              client['contacts'].find(x => x['contact_type'] == 'W') ? client['contacts'].find(x => x['contact_type'] == 'W')['contact_value'] : '---',
+              client['client_classification'],
+              { 'showEdit': true }]);
+          });
+
+          this.actualClientsPage = Math.ceil((offset+1)/this.defLimit);
+          this.maxClientsPages = Math.max(Math.ceil(vreturn['response']['count_clients']/this.defLimit), 1);
+          this.clientName = clientName;
+          this.childName = childrenName;
+          this.clientClassification = clientClassification;
+          this.clientWhatsapp = clientWhatsapp;
+          this.birthStartDayMonth = startChildrenBirthDayMonth;
+          this.birthEndDayMonth = endChildrenBirthDayMonth;
+          this.lastBuyStartT = startLastSaleDate;
+          this.lastBuyEndT = endLastSaleDate;
+          this.orderBy = orderBy;
+          this.orderByAsc = orderByAsc;
+
+          // checks if it was filtered
+          if(this.clientName || 
+            this.childName || 
+            this.clientClassification || 
+            this.clientWhatsapp || 
+            this.birthStartDayMonth || 
+            this.birthEndDayMonth || 
+            this.lastBuyStartT || 
+            this.lastBuyEndT ||
+            this.orderBy != 'person_name' ||
+            this.orderByAsc != 1
+          ){
+            this.filtered = true;
+          }
+          else{
+            this.filtered = false;
+          }
+
+          this.setSessionParams();
+        }
+        else{
+          this.$root.renderRequestErrorMsg(vreturn, []);
+        }
       }
     },
 
-    async filter(){
+    async filter(generatePDF=false){
       
       let clientName = this.$refs.nameInput.getV();
       let childName = this.$refs.childnameInput.getV();
@@ -451,7 +471,7 @@ export default {
       let birthStartDayMonth = birthStartMonth && birthStartDay ? String(birthStartMonth).padStart(2,'0') + '-' + String(birthStartDay).padStart(2,'0') : null;
       let birthEndDayMonth = birthEndMonth && birthEndDay ? String(birthEndMonth).padStart(2,'0') + '-' + String(birthEndDay).padStart(2,'0') : null;
 
-      await this.loadClients(this.defLimit, 0, orderBy, orderByAsc, clientName, childName, clientClassification, clientWhatsapp, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT);
+      await this.loadClients(this.defLimit, 0, orderBy, orderByAsc, clientName, childName, clientClassification, clientWhatsapp, birthStartDayMonth, birthEndDayMonth, lastBuyStartT, lastBuyEndT, generatePDF);
     },
 
     async cleanFilter(){
