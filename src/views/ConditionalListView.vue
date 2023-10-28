@@ -516,9 +516,17 @@ export default {
       this.$root.renderView('vercondicional', { 'conditional_id' : this.conditionalIds[conditionalPos] });
     },
 
-    generatePDF(conditionalPos){
+    async generatePDF(conditionalPos){
+
+      /*
+      await this.$root.doRequest(
+        Requests.getConditional,
+        [ this.conditionalIds[conditionalPos], true ],
+        true, true
+      );
+      */
+
       this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
-      //console.log('generate pdf ' + this.conditionalIds[conditionalPos]);
     },
 
     loadSessionParams(){

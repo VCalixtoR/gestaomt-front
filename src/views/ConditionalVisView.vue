@@ -106,7 +106,7 @@ export default {
         'content': []
       },
       tableConditionalData: {
-        'titles': [ 'Código', 'Data e hora de geração', 'Status' ],
+        'titles': [ 'Código', 'Data e hora', 'Status' ],
         'colTypes': [ 'string', 'string', 'select' ],
         'colWidths': [ '30%', '40%', '30%' ],
         'content': []

@@ -101,9 +101,9 @@ export default {
         'content': []
       },
       tableSaleData: {
-        'titles': [ 'Código', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Formas de pagamento e Parcelas' ],
-        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string-list' ],
-        'colWidths': [ '14%', '14%', '12%', '15%', '15%', '30%' ],
+        'titles': [ 'Código', 'Data e hora', 'Percentual de desconto', 'Valor de desconto', 'Valor total', 'Valor total com desconto', 'Formas de pagamento e Parcelas' ],
+        'colTypes': [ 'string', 'string', 'string', 'string', 'string', 'string', 'string-list' ],
+        'colWidths': [ '12%', '12%', '12%', '10%', '13%', '13%', '28%' ],
         'content': []
       },
       tableProductsData: {
@@ -159,6 +159,7 @@ export default {
 
       this.tableSaleData['content'] = [[
         `VEND-${saleData['sale_id']}`,
+        Utils.getDateTimeString(saleData['sale_creation_date_time'], '/', ':', false),
         `${Math.trunc(Number(saleData['sale_total_discount_percentage'])*100)}%`,
         Utils.getCurrencyFormat(saleRawValue-saleData['sale_total_value']),
         Utils.getCurrencyFormat(saleRawValue),

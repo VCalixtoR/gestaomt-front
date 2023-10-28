@@ -569,9 +569,17 @@ export default {
       this.$root.renderView('vervenda', { 'sale_id' : this.salesIds[salePos] });
     },
 
-    generatePDF(salePos){
+    async generatePDF(salePos){
+
+      /*
+      await this.$root.doRequest(
+        Requests.getSale,
+        [ this.salesIds[salePos], true ],
+        true, true
+      );
+      */
+
       this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
-      //console.log('generate pdf ' + this.salesIds[salePos]);
     },
 
     loadSessionParams(){

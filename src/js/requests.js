@@ -635,10 +635,11 @@ async function getConditional(token_jwt, args, blobRequest){
   }
 
   let querystring = parseQueryStrFromObj({
-    'conditional_id': args[0]
+    'conditional_id': args[0],
+    'generate_pdf': args[1]
   });
 
-  let vreturn = await baseRequestFBody(myHeaders, `conditional${querystring}`);
+  let vreturn = await baseRequestFBody(myHeaders, `conditional${querystring}`, blobRequest);
   return vreturn;
 }
 
@@ -739,10 +740,11 @@ async function getSale(token_jwt, args, blobRequest){
   }
 
   let querystring = parseQueryStrFromObj({
-    'sale_id': args[0]
+    'sale_id': args[0],
+    'generate_pdf': args[1]
   });
 
-  let vreturn = await baseRequestFBody(myHeaders, `sale${querystring}`);
+  let vreturn = await baseRequestFBody(myHeaders, `sale${querystring}`, blobRequest);
   return vreturn;
 }
 
