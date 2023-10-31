@@ -226,7 +226,6 @@
         />
       </div>
 
-      <!--
       <div class='filterButton'>
         <ButtonC colorClass="pink3"
           :id="'btnGeneratePDF'"
@@ -236,7 +235,6 @@
           @click="this.filter(true)"
         />
       </div>
-      -->
 
       <div class='clearFilterButton'>
         <ButtonC colorClass="black1"
