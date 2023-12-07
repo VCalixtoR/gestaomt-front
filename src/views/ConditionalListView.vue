@@ -515,16 +515,11 @@ export default {
     },
 
     async generatePDF(conditionalPos){
-
-      /*
       await this.$root.doRequest(
         Requests.getConditional,
         [ this.conditionalIds[conditionalPos], true ],
         true, true
       );
-      */
-
-      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
     },
 
     loadSessionParams(){

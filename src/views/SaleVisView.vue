@@ -180,9 +180,12 @@ export default {
         ]);
       });
     },
-    generatePDF(){
-      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
-      //console.log('generate pdf');
+    async generatePDF(){
+      await this.$root.doRequest(
+        Requests.getSale,
+        [ this.$root.pageParams['sale_id'], true ],
+        true, true
+      );
     },
     reutilizeSale(){
       this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');

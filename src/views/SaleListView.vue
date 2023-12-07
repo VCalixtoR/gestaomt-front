@@ -570,16 +570,11 @@ export default {
     },
 
     async generatePDF(salePos){
-
-      /*
       await this.$root.doRequest(
         Requests.getSale,
         [ this.salesIds[salePos], true ],
         true, true
       );
-      */
-
-      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
     },
 
     loadSessionParams(){

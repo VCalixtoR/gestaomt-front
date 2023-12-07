@@ -199,9 +199,12 @@ export default {
         this.$root.renderMsg('ok', 'Status alterado!', '');
       }
     },
-    generatePDF(){
-      this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
-      //console.log('generate pdf');
+    async generatePDF(){
+      await this.$root.doRequest(
+        Requests.getConditional,
+        [ this.$root.pageParams['conditional_id'], true ],
+        true, true
+      );
     },
     reutilizeConditional(){
       this.$root.renderMsg('warn', 'Recurso em desenvolvimento!', '');
